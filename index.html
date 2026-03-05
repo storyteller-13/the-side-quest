@@ -53,6 +53,14 @@
     box-shadow: 0 0 20px rgba(255,20,147,0.5); transition: transform 0.1s, box-shadow 0.1s; pointer-events: all;
   }
   #startBtn:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(255,20,147,0.8); }
+  #pauseBtn {
+    position: fixed; left: 16px; bottom: 16px;
+    background: rgba(26,0,40,0.9); border: 1px solid #ff69b4; color: #ff69b4;
+    padding: 8px 16px; font-size: 12px; font-family: 'Courier New', monospace;
+    letter-spacing: 2px; cursor: pointer; text-transform: uppercase; border-radius: 2px;
+    pointer-events: all; transition: background 0.15s, color 0.15s;
+  }
+  #pauseBtn:hover { background: rgba(255,105,180,0.25); color: #ffd700; }
 </style>
 </head>
 <body>
@@ -70,6 +78,7 @@
         <div id="ammoDisplay">HEARTS: 5</div>
       </div>
       <div class="hud-right">
+        <button id="pauseBtn">PAUSE</button>
         <div id="scoreDisplay">0</div>
         <div id="levelDisplay">ZONE 1 [1/7]</div>
         <div id="wantedStars">♥♥♥♥♥</div>
@@ -221,6 +230,7 @@ window.addEventListener('resize', resizeCanvas);
 
 // ─── State ───────────────────────────────────────────────────────────────────
 let state = 'menu';
+let paused = false;
 let score = 0;
 let zone = 0;
 let frameCount = 0;
@@ -234,7 +244,17 @@ let cutsceneTimer = 0;
 // ─── Input ───────────────────────────────────────────────────────────────────
 const keys = {};
 const mouse = { x: 0, y: 0, left: false, right: false };
-document.addEventListener('keydown', e => { keys[e.code] = true; e.preventDefault(); });
+document.addEventListener('keydown', e => {
+  if (e.code === 'Escape' && state === 'playing') {
+    paused = !paused;
+    const btn = document.getElementById('pauseBtn');
+    if (btn) btn.textContent = paused ? 'RESUME' : 'PAUSE';
+    e.preventDefault();
+    return;
+  }
+  keys[e.code] = true;
+  e.preventDefault();
+});
 document.addEventListener('keyup',   e => { keys[e.code] = false; });
 canvas.addEventListener('mousemove', e => {
   const r = canvas.getBoundingClientRect();
@@ -974,6 +994,7 @@ function initZone(zoneIdx) {
 
 function startGame() {
   score=0; zone=0; initZone(0);
+  paused=false;
   const fill=document.getElementById('healthFill');
   fill.style.transition='none'; fill.style.width='100%';
   requestAnimationFrame(()=>fill.style.transition='');
@@ -987,10 +1008,11 @@ function gameLoop() {
   frameCount++;
 
   if (state==='playing') {
-    updatePlayer(player);
-    for (const m of monsters) updateMonster(m);
-    updateProjectiles(); updateParticles(); updateFloatingTexts();
-    updateCamera(); updatePrince(); checkWin();
+    if (!paused) {
+      updatePlayer(player);
+      for (const m of monsters) updateMonster(m);
+      updateProjectiles(); updateParticles(); updateFloatingTexts();
+      updateCamera(); updatePrince(); checkWin();
     for (let i=roses.length-1;i>=0;i--) { roses[i].life--; if (roses[i].life<=0) roses.splice(i,1); }
     if (screenShake>0) screenShake=Math.max(0,screenShake-1.2);
     for (let i=shockwaves.length-1;i>=0;i--) {
@@ -998,6 +1020,7 @@ function gameLoop() {
       if (sw.delay>0){sw.delay--;continue;}
       sw.radius+=(sw.maxRadius-sw.radius)*0.14; sw.life--;
       if (sw.life<=0) shockwaves.splice(i,1);
+    }
     }
     // Zone transition fade
     if (zoneTransitionTimer>0) {
@@ -1047,6 +1070,21 @@ function gameLoop() {
       ctx.shadowBlur = 6;
       ctx.fillText(msg, W/2, by + bh/2);
       ctx.restore();
+    }
+    // Pause overlay
+    if (paused) {
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#ff69b4';
+      ctx.font = 'bold 36px monospace';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#ff69b4';
+      ctx.shadowBlur = 20;
+      ctx.fillText('PAUSED', W/2, H/2 - 20);
+      ctx.fillStyle = '#c084fc';
+      ctx.font = '14px monospace';
+      ctx.shadowBlur = 0;
+      ctx.fillText('Press ESC or click RESUME', W/2, H/2 + 20);
     }
 
   } else if (state==='cutscene') {
@@ -1116,7 +1154,24 @@ function gameLoop() {
   }
 }
 
-document.getElementById('startBtn').addEventListener('click', startGame);
+const pauseBtn = document.getElementById('pauseBtn');
+function setPauseButtonVisible(visible) {
+  pauseBtn.style.display = visible ? 'block' : 'none';
+}
+setPauseButtonVisible(false);
+
+document.getElementById('startBtn').addEventListener('click', () => {
+  startGame();
+  setPauseButtonVisible(true);
+  pauseBtn.textContent = 'PAUSE';
+});
+
+pauseBtn.addEventListener('click', () => {
+  if (state !== 'playing') return;
+  paused = !paused;
+  pauseBtn.textContent = paused ? 'RESUME' : 'PAUSE';
+});
+
 gameLoop();
 </script>
 </body>
