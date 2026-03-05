@@ -1,11 +1,11 @@
 # The Side Quest
 
-Single-file HTML5 canvas game. All code lives in `index.html`.
+HTML5 canvas game with production-style layout: separate CSS, config, and scripts.
 
 ## Running
 
 ```
-make serve   # http://localhost:8044
+make server   # http://localhost:8044
 ```
 
 ## Game
@@ -24,9 +24,7 @@ Top-down GTA-style action game. The princess fights monsters to reach the prince
 
 ## Structure
 
-Everything is in `index.html`:
-- Constants / canvas setup
-- Map generation (tile-based grid: roads, walls, castle)
-- Entity logic: player, monsters (5 types), prince, projectiles, particles
-- Rendering: tiles, characters, HUD, minimap
-- Game loop: `requestAnimationFrame`
+- `index.html` — Markup only; links to CSS, config, and script
+- `css/style.css` — All styles
+- `config.js` — All user-facing text and content (zones, monster types, UI strings)
+- `script/game.js` — Game logic: constants, audio, canvas, entities, rendering, game loop
