@@ -609,6 +609,23 @@ function drawPlayer(p) {
 
   ctx.restore();
 
+  // Charge ring
+  if (p.chargeTime > 0) {
+    const charge = p.chargeTime / 60;
+    const radius = 24 + charge * 20;
+    const pulse = Math.sin(frameCount * 0.2) * 0.3;
+    ctx.strokeStyle = charge >= 1 ? '#ffd700' : '#ff69b4';
+    ctx.lineWidth = 2 + charge * 3;
+    ctx.globalAlpha = 0.4 + charge * 0.5 + pulse;
+    ctx.shadowColor = charge >= 1 ? '#ffd700' : '#ff1493';
+    ctx.shadowBlur = 16;
+    ctx.beginPath();
+    ctx.arc(sx, sy, radius, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * charge);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+  }
+
   // Glow aura
   const grd = ctx.createRadialGradient(sx, sy, 0, sx, sy, 28);
   grd.addColorStop(0, 'rgba(255, 105, 180, 0.12)');
@@ -798,15 +815,33 @@ function drawPrince(p) {
 }
 
 function drawProjectile(proj) {
+  // Trail
+  if (proj.trail) {
+    for (let i = 0; i < proj.trail.length; i++) {
+      const t = proj.trail[i];
+      const [tx, ty] = worldToScreen(t.x, t.y);
+      const alpha = (i / proj.trail.length) * 0.5;
+      const size = (proj.size || 8) * (i / proj.trail.length) * 0.7;
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = proj.charge >= 1 ? '#ffd700' : '#ff69b4';
+      ctx.beginPath();
+      ctx.arc(tx, ty, size * 0.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
   const [sx, sy] = worldToScreen(proj.x, proj.y);
+  const size = proj.size || 8;
   ctx.save();
   ctx.translate(sx, sy);
-  ctx.rotate(proj.angle);
+  ctx.rotate(proj.spin || 0);
   if (proj.type === 'heart') {
-    drawHeart(ctx, 0, 0, 8, '#ff1493', 1);
-    ctx.shadowColor = '#ff1493';
-    ctx.shadowBlur = 12;
-    drawHeart(ctx, 0, 0, 8, '#ff69b4', 0.5);
+    ctx.shadowColor = proj.charge >= 1 ? '#ffd700' : '#ff1493';
+    ctx.shadowBlur = 14 + (proj.charge || 0) * 16;
+    drawHeart(ctx, 0, -size * 0.5, size, proj.charge >= 1 ? '#ffd700' : '#ff1493', 1);
+    ctx.shadowBlur = 6;
+    drawHeart(ctx, 0, -size * 0.5, size, '#ff69b4', 0.4);
     ctx.shadowBlur = 0;
   }
   ctx.restore();
@@ -855,6 +890,17 @@ function updatePlayer(p) {
   // Timers
   if (p.attackTimer > 0) p.attackTimer--;
   if (p.invincible > 0) p.invincible--;
+  if (p.heartCooldown > 0) p.heartCooldown--;
+
+  // Ammo regen — 1 per 300 frames (~5s)
+  if (p.ammo < 10) {
+    p.ammoRegenTimer++;
+    if (p.ammoRegenTimer >= 300) {
+      p.ammo++;
+      p.ammoRegenTimer = 0;
+      showFloatingText(p.x, p.y - 20, '+HEART', '#ff69b4');
+    }
+  }
 
   // Attack - melee
   if ((keys['Space'] || mouse.left) && p.attackTimer === 0) {
@@ -863,24 +909,45 @@ function updatePlayer(p) {
     keys['Space'] = false;
   }
 
-  // Attack - ranged (heart projectile)
-  if ((keys['KeyE'] || mouse.right) && p.attackTimer === 0 && p.ammo > 0) {
-    p.attackTimer = p.attackCooldown;
-    p.ammo--;
-    mouse.right = false;
-    keys['KeyE'] = false;
+  // Attack - ranged (charge shot)
+  const heartHeld = keys['KeyE'] || mouse.right;
+  if (heartHeld && p.heartCooldown === 0 && p.ammo > 0) {
+    p.chargeTime = Math.min(p.chargeTime + 1, 60);
+    p.wasChargingHeart = true;
+  } else if (p.wasChargingHeart && p.chargeTime > 0) {
+    // Release — fire based on charge level
+    const charge = p.chargeTime / 60; // 0..1
     const angle = p.facing - Math.PI / 2;
+    const spd = 7 + charge * 6;
+    const dmg = 35 + charge * 80;
+    const size = 8 + charge * 14;
+    const pierce = charge >= 0.95;
+    p.ammo--;
     projectiles.push({
       x: p.x, y: p.y,
-      vx: Math.cos(angle) * 7,
-      vy: Math.sin(angle) * 7,
+      vx: Math.cos(angle) * spd,
+      vy: Math.sin(angle) * spd,
       angle: angle,
+      spin: 0,
       type: 'heart',
       owner: 'player',
-      damage: 35,
-      life: 80,
+      damage: dmg,
+      size: size,
+      pierce: pierce,
+      pierceCount: pierce ? 3 : 0,
+      charge: charge,
+      life: 100 + charge * 40,
+      trail: [],
     });
-    spawnParticles(p.x, p.y, '#ff69b4', 4, 2);
+    spawnParticles(p.x, p.y, '#ff69b4', 4 + Math.floor(charge * 8), 3 + charge * 3);
+    p.chargeTime = 0;
+    p.wasChargingHeart = false;
+    p.heartCooldown = 15;
+    mouse.right = false;
+    keys['KeyE'] = false;
+  } else if (!heartHeld) {
+    p.wasChargingHeart = false;
+    p.chargeTime = 0;
   }
 }
 
@@ -990,24 +1057,44 @@ function updateMonster(m) {
 function updateProjectiles() {
   for (let i = projectiles.length - 1; i >= 0; i--) {
     const p = projectiles[i];
+
+    // Trail
+    if (p.trail) {
+      p.trail.push({ x: p.x, y: p.y });
+      if (p.trail.length > 12) p.trail.shift();
+    }
+
     p.x += p.vx;
     p.y += p.vy;
+    p.spin = (p.spin || 0) + 0.18;
     p.life--;
 
     if (p.life <= 0 || !isWalkable(p.x, p.y, 4)) {
-      spawnParticles(p.x, p.y, '#ff69b4', 5, 3);
+      const hitColor = p.charge >= 1 ? '#ffd700' : '#ff69b4';
+      spawnParticles(p.x, p.y, hitColor, 8, 4);
+      spawnHearts(p.x, p.y);
       projectiles.splice(i, 1);
       continue;
     }
 
     if (p.owner === 'player') {
+      let spliced = false;
       for (const m of monsters) {
         if (m.dead) continue;
         const dx = m.x - p.x, dy = m.y - p.y;
-        if (Math.sqrt(dx * dx + dy * dy) < m.size + 8) {
+        if (Math.sqrt(dx * dx + dy * dy) < m.size + (p.size || 8)) {
           damageMonster(m, p.damage);
-          projectiles.splice(i, 1);
-          break;
+          spawnParticles(m.x, m.y, '#ff69b4', 10, 5);
+          if (p.pierce && p.pierceCount > 0) {
+            p.pierceCount--;
+            // Slow the projectile slightly on pierce
+            p.vx *= 0.85;
+            p.vy *= 0.85;
+          } else {
+            projectiles.splice(i, 1);
+            spliced = true;
+            break;
+          }
         }
       }
     }
