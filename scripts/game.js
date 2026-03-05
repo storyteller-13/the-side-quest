@@ -135,6 +135,7 @@ let loveMeter = 0;
 let loveSoundPlayed = false;
 let zoneTransitionTimer = 0;
 let cutsceneTimer = 0;
+let winFloaters = [];
 
 // ─── Input ───────────────────────────────────────────────────────────────────
 const keys = {};
@@ -848,6 +849,10 @@ function drawOverlay(title, sub, btnText, btnId) {
   ov.innerHTML=`<h1>${title}</h1><div class="subtitle">${sub}</div>
     <div style="color:#c084fc;font-size:14px;margin-bottom:24px;">${CONFIG.hud.scoreLabel} ${score.toString().padStart(6,'0')}</div>
     <button id="${btnId}" style="background:linear-gradient(135deg,#ff1493,#c084fc);border:none;color:white;padding:14px 48px;font-size:18px;font-family:'Courier New',monospace;letter-spacing:3px;cursor:pointer;text-transform:uppercase;border-radius:2px;box-shadow:0 0 20px rgba(255,20,147,0.5);pointer-events:all;">${btnText}</button>`;
+  if (btnId === 'winBtn') {
+    ensureWinFloatersCanvas();
+    winFloaters = [];
+  }
   if (btnId === 'winBtn' && CONFIG.cutscene.winMusicVideoId && !ov.querySelector('iframe')) {
     const iframe = document.createElement('iframe');
     iframe.setAttribute('src', `https://www.youtube.com/embed/${CONFIG.cutscene.winMusicVideoId}?autoplay=1`);
@@ -855,10 +860,67 @@ function drawOverlay(title, sub, btnText, btnId) {
     iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
     iframe.setAttribute('allowfullscreen', '');
     iframe.style.cssText = 'position:absolute;bottom:24px;left:50%;transform:translateX(-50%);width:320px;height:180px;border-radius:4px;pointer-events:auto;';
-    ov.style.position = 'relative';
     ov.appendChild(iframe);
   }
   ov.style.display='flex';
+}
+
+let winFloatersCanvas = null;
+
+function ensureWinFloatersCanvas() {
+  if (winFloatersCanvas && winFloatersCanvas.parentNode) return;
+  winFloatersCanvas = document.createElement('canvas');
+  winFloatersCanvas.id = 'winFloatersCanvas';
+  winFloatersCanvas.style.cssText = 'position:absolute;inset:0;z-index:100;pointer-events:none';
+  document.getElementById('gameContainer').appendChild(winFloatersCanvas);
+}
+
+function updateAndDrawWinFloaters() {
+  ensureWinFloatersCanvas();
+  const cw = W;
+  const ch = H;
+  if (winFloatersCanvas.width !== cw || winFloatersCanvas.height !== ch) {
+    winFloatersCanvas.width = cw;
+    winFloatersCanvas.height = ch;
+  }
+  winFloatersCanvas.style.display = 'block';
+  if (frameCount % 2 === 0) {
+    const chars = ['♥', '💀'];
+    for (let i = 0; i < 2; i++) {
+      winFloaters.push({
+        x: Math.random() * cw,
+        y: ch + 20,
+        char: chars[Math.floor(Math.random() * chars.length)],
+        speed: 0.8 + Math.random() * 1.2,
+        size: 18 + Math.random() * 22,
+        opacity: 0.5 + Math.random() * 0.5
+      });
+    }
+  }
+  for (let i = winFloaters.length - 1; i >= 0; i--) {
+    winFloaters[i].y -= winFloaters[i].speed;
+    if (winFloaters[i].y < -40) winFloaters.splice(i, 1);
+  }
+  const fctx = winFloatersCanvas.getContext('2d');
+  fctx.clearRect(0, 0, cw, ch);
+  fctx.font = '24px sans-serif';
+  fctx.textAlign = 'center';
+  fctx.textBaseline = 'middle';
+  for (const f of winFloaters) {
+    fctx.save();
+    fctx.globalAlpha = f.opacity * Math.min(1, (ch - f.y) / 80);
+    fctx.font = `${Math.round(f.size)}px sans-serif`;
+    if (f.char === '♥') {
+      fctx.fillStyle = '#ff69b4';
+      fctx.shadowColor = '#ff1493';
+    } else {
+      fctx.fillStyle = '#e2e8f0';
+      fctx.shadowColor = '#94a3b8';
+    }
+    fctx.shadowBlur = 8;
+    fctx.fillText(f.char, f.x, f.y);
+    fctx.restore();
+  }
 }
 
 // ─── Init / Start ─────────────────────────────────────────────────────────────
@@ -877,6 +939,7 @@ function startGame() {
   fill.style.transition='none'; fill.style.width='100%';
   requestAnimationFrame(()=>fill.style.transition='');
   document.getElementById('overlay').style.display='none';
+  if (winFloatersCanvas) winFloatersCanvas.style.display = 'none';
   state='playing';
 }
 
@@ -1047,6 +1110,7 @@ function gameLoop() {
       drawOverlay(CONFIG.cutscene.trueLove, CONFIG.cutscene.winSubtitle, CONFIG.cutscene.playAgain, 'winBtn');
       document.getElementById('winBtn').addEventListener('click', startGame);
     }
+    updateAndDrawWinFloaters();
     render();
   } else {
     if (state!=='menu') render();
