@@ -25,6 +25,6 @@ Top-down GTA-style action game. The princess fights monsters to reach the prince
 ## Structure
 
 - `index.html` — Markup only; links to CSS, config, and script
-- `css/style.css` — All styles
+- `styles/style.css` — All styles
 - `config.js` — All user-facing text and content (zones, monster types, UI strings)
-- `script/game.js` — Game logic: constants, audio, canvas, entities, rendering, game loop
+- `scripts/game.js` — Game logic: constants, audio, canvas, entities, rendering, game loop
