@@ -45,7 +45,8 @@ window.CONFIG = {
     finally: 'FINALLY...',
     trueLove: 'TRUE LOVE! ♥',
     winSubtitle: 'he finally didn\'t run away! all 7 levels worth it.',
-    playAgain: 'PLAY AGAIN'
+    playAgain: 'PLAY AGAIN',
+    winMusicVideoId: 'tAGnKpE4NCI'  // Metallica - Nothing Else Matters
   },
 
   // Death overlay
@@ -59,10 +60,10 @@ window.CONFIG = {
   zones: [
     { name: 'THE DARK STREETS OF BERLIN',   bg: '#1a0028', monsterCount: 8,  monsterSpeed: 1.0, fleeSpeed: 6,
       excuse: "I'M NOT READY!",
-      taunts: ["NICE TRY!", "YOU'LL NEVER CATCH ME!"] },
+      taunts: ["YOU'LL NEVER CATCH ME!"] },
     { name: 'HAUNTED GARDENS IN OAHU',    bg: '#001a0a', monsterCount: 13, monsterSpeed: 1.2, fleeSpeed: 8,
       excuse: "I FORGOT SOMETHING!",
-      taunts: ["SO MANY MONSTERS! BYE!"] },
+      taunts: ["SO MANY MONSTERS!"] },
     { name: 'THE CURSED FOREST OF BRAZIL',  bg: '#0d1a00', monsterCount: 18, monsterSpeed: 1.4, fleeSpeed: 10,
       excuse: "I LEFT THE OVEN ON!",
       taunts: ["I HAVE PLACES TO BE!"] },
@@ -75,9 +76,9 @@ window.CONFIG = {
     { name: 'THE FINAL FORTRESS IN DENVER', bg: '#08081a', monsterCount: 30, monsterSpeed: 2.0, fleeSpeed: 16,
       excuse: "I AM SCARED!",
       taunts: ["MAYBE IN ANOTHER LIFE!"] },
-    { name: 'THE ROSE GARDEN IN THE SECRET HAVEN',    bg: '#1a0512', monsterCount: 35, monsterSpeed: 2.2, fleeSpeed: 0,
+    { name: 'THE SECRET ROSE GARDEN',    bg: '#1a0512', monsterCount: 35, monsterSpeed: 2.2, fleeSpeed: 0,
       excuse: null,
-      taunts: ["...wait, maybe i'll stay..."] }
+      taunts: ["MAYBE I\LL STAY..."] }
   ],
 
   // Monster types (name, color, eyeColor, hp, speed, damage, size, loot)

@@ -305,11 +305,19 @@ const tileColors = {
   [T.GRASS]: ['#1a2e1a','#162614'], [T.PARK]:  ['#0f2010','#0c1a0c'],
   [T.ROSE]:  ['#2d0a1a','#200812'], [T.CASTLE]:['#2a1a3a','#1e1228'],
 };
+function mixHex(hex1, hex2, t) {
+  const parse = (h) => ({ r: parseInt(h.slice(1,3),16), g: parseInt(h.slice(3,5),16), b: parseInt(h.slice(5,7),16) });
+  const a = parse(hex1), b = parse(hex2);
+  const r = Math.round(a.r*(1-t)+b.r*t), g = Math.round(a.g*(1-t)+b.g*t), b_ = Math.round(a.b*(1-t)+b.b*t);
+  return '#'+[r,g,b_].map(x=>Math.max(0,Math.min(255,x)).toString(16).padStart(2,'0')).join('');
+}
 function drawTile(r, c) {
   const t = tilemap[r][c];
   const [sx,sy] = worldToScreen(c*TILE, r*TILE);
   if (sx>W||sy>H||sx<-TILE||sy<-TILE) return;
-  const colors = tileColors[t]||tileColors[T.WALL];
+  const zoneBg = CONFIG.zones[zone].bg;
+  const baseColors = tileColors[t]||tileColors[T.WALL];
+  const colors = [mixHex(baseColors[0], zoneBg, 0.35), mixHex(baseColors[1], zoneBg, 0.35)];
   ctx.fillStyle = colors[(r+c)%2];
   ctx.fillRect(sx, sy, TILE, TILE);
   if (t===T.ROAD) {
@@ -811,6 +819,13 @@ function render() {
   drawPrince(prince);
   for (const m of monsters) drawMonster(m);
   drawPlayer(player);
+  if (state === 'winScreen') {
+    const [sx, sy] = worldToScreen(player.x, player.y);
+    ctx.font = '28px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('💀', sx, sy - 24);
+  }
   for (const proj of projectiles) drawProjectile(proj);
   for (const p of particles) drawParticle(p);
   for (const ft of floatingTexts) {
@@ -833,6 +848,16 @@ function drawOverlay(title, sub, btnText, btnId) {
   ov.innerHTML=`<h1>${title}</h1><div class="subtitle">${sub}</div>
     <div style="color:#c084fc;font-size:14px;margin-bottom:24px;">${CONFIG.hud.scoreLabel} ${score.toString().padStart(6,'0')}</div>
     <button id="${btnId}" style="background:linear-gradient(135deg,#ff1493,#c084fc);border:none;color:white;padding:14px 48px;font-size:18px;font-family:'Courier New',monospace;letter-spacing:3px;cursor:pointer;text-transform:uppercase;border-radius:2px;box-shadow:0 0 20px rgba(255,20,147,0.5);pointer-events:all;">${btnText}</button>`;
+  if (btnId === 'winBtn' && CONFIG.cutscene.winMusicVideoId && !ov.querySelector('iframe')) {
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('src', `https://www.youtube.com/embed/${CONFIG.cutscene.winMusicVideoId}?autoplay=1`);
+    iframe.setAttribute('frameborder', '0');
+    iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+    iframe.setAttribute('allowfullscreen', '');
+    iframe.style.cssText = 'position:absolute;bottom:24px;left:50%;transform:translateX(-50%);width:320px;height:180px;border-radius:4px;pointer-events:auto;';
+    ov.style.position = 'relative';
+    ov.appendChild(iframe);
+  }
   ov.style.display='flex';
 }
 
@@ -992,6 +1017,13 @@ function gameLoop() {
     drawOverlay(CONFIG.death.title, CONFIG.death.subtitle, CONFIG.death.retry, 'retryBtn');
     document.getElementById('retryBtn').addEventListener('click', startGame);
     state='deadScreen';
+  } else if (state==='winScreen') {
+    document.getElementById('overlay').style.display = 'flex';
+    if (!document.getElementById('winBtn')) {
+      drawOverlay(CONFIG.cutscene.trueLove, CONFIG.cutscene.winSubtitle, CONFIG.cutscene.playAgain, 'winBtn');
+      document.getElementById('winBtn').addEventListener('click', startGame);
+    }
+    render();
   } else {
     if (state!=='menu') render();
   }
