@@ -1,4 +1,4 @@
-# Princess Quest
+# The Side Quest
 
 Single-file HTML5 canvas game. All code lives in `index.html`.
 
