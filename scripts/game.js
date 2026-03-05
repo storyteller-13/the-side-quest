@@ -733,7 +733,7 @@ function checkWin() {
     } else {
       prince.fleeing=true;
       prince.speech=ZONES[zone].excuse;
-      prince.speechTimer=180;
+      prince.speechTimer=360;
       const len=Math.sqrt(dx*dx+dy*dy)||1;
       const fleeSpd=ZONES[zone].fleeSpeed;
       prince.fleeVx=-(dx/len)*fleeSpd;
@@ -917,31 +917,55 @@ function gameLoop() {
       }
     }
     render(); updateHUD(); drawMinimap();
+    // Prince excuses (fleeing): dialogue balloon + Superman emoji
     if (prince && prince.fleeing && prince.speech && prince.speechTimer > 0) {
-      const alpha = Math.min(1, prince.speechTimer / 30);
+      const alpha = Math.min(1, prince.speechTimer / 25) * (1 - Math.max(0, (prince.speechTimer - 340) / 20) * 0.3);
+      const msg = prince.speech;
       ctx.save();
       ctx.globalAlpha = alpha;
-      const msg = `"${prince.speech}"`;
-      ctx.font = 'bold 26px monospace';
+      const cx = W / 2, cy = H / 2;
+      const padX = 48, padY = 28;
+      ctx.font = 'bold 28px monospace';
       const tw = ctx.measureText(msg).width;
-      const bx = W/2 - tw/2 - 20, by = 24, bw = tw + 40, bh = 52;
-      ctx.fillStyle = 'rgba(0,0,0,0.85)';
-      ctx.beginPath();
-      ctx.roundRect(bx+3, by+3, bw, bh, 12);
-      ctx.fill();
-      ctx.fillStyle = '#fff0f8';
+      const bubbleW = Math.max(tw + padX * 2, 280);
+      const bubbleH = 72;
+      const radius = 20;
+      const bubbleX = cx - bubbleW / 2;
+      const bubbleY = cy - bubbleH - 100;
+      const tailY = bubbleY + bubbleH;
+      const r = radius;
+      const tailW = 18;
+      const tailH = 22;
+      // Single path: balloon + tail so stroke doesn't cross at the junction
+      ctx.fillStyle = '#fffef9';
       ctx.strokeStyle = '#ff69b4';
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.roundRect(bx, by, bw, bh, 12);
+      ctx.moveTo(bubbleX + r, bubbleY);
+      ctx.lineTo(bubbleX + bubbleW - r, bubbleY);
+      ctx.quadraticCurveTo(bubbleX + bubbleW, bubbleY, bubbleX + bubbleW, bubbleY + r);
+      ctx.lineTo(bubbleX + bubbleW, bubbleY + bubbleH - r);
+      ctx.quadraticCurveTo(bubbleX + bubbleW, tailY, bubbleX + bubbleW - r, tailY);
+      ctx.lineTo(cx + tailW, tailY);
+      ctx.lineTo(cx, tailY + tailH);
+      ctx.lineTo(cx - tailW, tailY);
+      ctx.lineTo(bubbleX + r, tailY);
+      ctx.quadraticCurveTo(bubbleX, tailY, bubbleX, bubbleY + bubbleH - r);
+      ctx.lineTo(bubbleX, bubbleY + r);
+      ctx.quadraticCurveTo(bubbleX, bubbleY, bubbleX + r, bubbleY);
+      ctx.closePath();
       ctx.fill();
       ctx.stroke();
-      ctx.fillStyle = '#880033';
+      // Text inside balloon
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.shadowColor = 'rgba(255,100,150,0.4)';
-      ctx.shadowBlur = 6;
-      ctx.fillText(msg, W/2, by + bh/2);
+      ctx.fillStyle = '#2d0a1a';
+      ctx.font = 'bold 28px monospace';
+      ctx.fillText(msg, cx, bubbleY + bubbleH / 2);
+      // Superman emoji (large, below balloon — he's "talking")
+      ctx.font = '120px sans-serif';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🦸🏻‍♂️', cx, cy + 20);
       ctx.restore();
     }
     if (paused) {

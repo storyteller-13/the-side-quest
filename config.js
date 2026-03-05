@@ -52,7 +52,7 @@ window.CONFIG = {
   // Death overlay
   death: {
     title: 'YOU LOST THE PRINCE!',
-    subtitle: 'the prince waits... i know it\s tiring, but do you want to try again?',
+    subtitle: 'i know it\'s tiring, but do you want to try again?',
     retry: 'RETRY'
   },
 
@@ -78,7 +78,7 @@ window.CONFIG = {
       taunts: ["MAYBE IN ANOTHER LIFE!"] },
     { name: 'THE SECRET ROSE GARDEN',    bg: '#1a0512', monsterCount: 35, monsterSpeed: 2.2, fleeSpeed: 0,
       excuse: null,
-      taunts: ["MAYBE I\LL STAY..."] }
+      taunts: ["MAYBE I\'LL STAY..."] }
   ],
 
   // Monster types (name, color, eyeColor, hp, speed, damage, size, loot)
