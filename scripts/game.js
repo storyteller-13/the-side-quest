@@ -104,6 +104,25 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
+// ─── Init text from config ────────────────────────────────────────────────────
+function initTextFromConfig() {
+  document.title = CONFIG.title;
+  document.getElementById('healthLabel').textContent = CONFIG.hud.health;
+  document.getElementById('loveLabel').textContent = CONFIG.hud.loveMeter;
+  document.getElementById('ammoLabel').textContent = CONFIG.hud.ammo;
+  document.getElementById('ammoDisplay').textContent = CONFIG.hud.ammoFormat.replace('%d', '5');
+  document.getElementById('pauseBtn').textContent = CONFIG.buttons.pause;
+  document.getElementById('scoreDisplay').textContent = '0';
+  document.getElementById('levelDisplay').textContent = CONFIG.zones[0].name + '  [1/' + CONFIG.zones.length + ']';
+  document.getElementById('wantedStars').textContent = CONFIG.hud.wantedStar.repeat(5);
+  document.getElementById('overlayTitle').textContent = CONFIG.overlayTitle;
+  document.getElementById('overlaySubtitle').textContent = CONFIG.subtitle;
+  const controlsEl = document.getElementById('overlayControls');
+  controlsEl.innerHTML = CONFIG.controls.map(c => `<span>${c.keys}</span> — ${c.action}<br>`).join('');
+  document.getElementById('startBtn').textContent = CONFIG.startButton;
+}
+initTextFromConfig();
+
 // ─── State ───────────────────────────────────────────────────────────────────
 let state = 'menu';
 let paused = false;
@@ -812,7 +831,7 @@ function render() {
 function drawOverlay(title, sub, btnText, btnId) {
   const ov=document.getElementById('overlay');
   ov.innerHTML=`<h1>${title}</h1><div class="subtitle">${sub}</div>
-    <div style="color:#c084fc;font-size:14px;margin-bottom:24px;">Score: ${score.toString().padStart(6,'0')}</div>
+    <div style="color:#c084fc;font-size:14px;margin-bottom:24px;">${CONFIG.hud.scoreLabel} ${score.toString().padStart(6,'0')}</div>
     <button id="${btnId}" style="background:linear-gradient(135deg,#ff1493,#c084fc);border:none;color:white;padding:14px 48px;font-size:18px;font-family:'Courier New',monospace;letter-spacing:3px;cursor:pointer;text-transform:uppercase;border-radius:2px;box-shadow:0 0 20px rgba(255,20,147,0.5);pointer-events:all;">${btnText}</button>`;
   ov.style.display='flex';
 }
