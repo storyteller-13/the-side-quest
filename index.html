@@ -235,9 +235,11 @@ let monsters = [];
 let projectiles = [];
 let particles = [];
 let roses = [];
+let shockwaves = [];
 let prince = null;
 let player = null;
 let camera = { x: 0, y: 0 };
+let screenShake = 0;
 
 function generateMap(zoneIdx) {
   tilemap = [];
@@ -368,6 +370,10 @@ function spawnMonsters(zoneIdx) {
       attackTimer: 0,
       facing: 0,
       alertTimer: 0,
+      meleeHits: 0,
+      hitFlash: 0,
+      exploding: false,
+      explodeTimer: 0,
       dead: false,
     });
   }
@@ -430,7 +436,9 @@ function drawHeart(ctx, x, y, size, color = '#ff1493', alpha = 1) {
 }
 
 function worldToScreen(wx, wy) {
-  return [wx - camera.x, wy - camera.y];
+  const shakeX = screenShake > 0 ? (Math.random() - 0.5) * screenShake : 0;
+  const shakeY = screenShake > 0 ? (Math.random() - 0.5) * screenShake : 0;
+  return [wx - camera.x + shakeX, wy - camera.y + shakeY];
 }
 
 // ─── Tile Rendering ──────────────────────────────────────────────────────────
@@ -611,6 +619,7 @@ function drawPlayer(p) {
 
   // Charge ring
   if (p.chargeTime > 0) {
+    ctx.save();
     const charge = p.chargeTime / 60;
     const radius = 24 + charge * 20;
     const pulse = Math.sin(frameCount * 0.2) * 0.3;
@@ -622,8 +631,7 @@ function drawPlayer(p) {
     ctx.beginPath();
     ctx.arc(sx, sy, radius, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * charge);
     ctx.stroke();
-    ctx.shadowBlur = 0;
-    ctx.globalAlpha = 1;
+    ctx.restore();
   }
 
   // Glow aura
@@ -637,8 +645,27 @@ function drawPlayer(p) {
 }
 
 function drawMonster(m) {
+  if (m.dead) return;
   const [sx, sy] = worldToScreen(m.x, m.y);
   if (sx < -50 || sx > W + 50 || sy < -50 || sy > H + 50) return;
+
+  // Exploding swell-and-disappear animation
+  if (m.exploding) {
+    const t = m.explodeTimer / 20; // 0→1
+    const scale = 1 + t * 5;
+    const alpha = 1 - t;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(sx, sy);
+    ctx.scale(scale, scale);
+    // Flash white then orange
+    ctx.fillStyle = t < 0.4 ? '#ffffff' : '#ffd700';
+    ctx.beginPath();
+    ctx.arc(0, 0, m.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    return;
+  }
 
   ctx.save();
   ctx.translate(sx, sy);
@@ -686,6 +713,15 @@ function drawMonster(m) {
   }
   ctx.stroke();
 
+  // Hit flash overlay
+  if (m.hitFlash > 0) {
+    ctx.fillStyle = `rgba(255,255,255,${m.hitFlash / 8 * 0.6})`;
+    ctx.beginPath();
+    ctx.arc(0, 0, m.size, 0, Math.PI * 2);
+    ctx.fill();
+    m.hitFlash--;
+  }
+
   ctx.restore();
 
   // HP bar
@@ -706,6 +742,18 @@ function drawMonster(m) {
     ctx.font = 'bold 14px monospace';
     ctx.textAlign = 'center';
     ctx.fillText('!', sx, sy - m.size - 14);
+  }
+
+  // Melee hit counter dots
+  if (m.meleeHits > 0) {
+    const dotSpacing = 8;
+    const startX = sx - ((m.meleeHits - 1) * dotSpacing) / 2;
+    for (let i = 0; i < m.meleeHits; i++) {
+      ctx.fillStyle = i === m.meleeHits - 1 ? '#ffd700' : '#ff69b4';
+      ctx.beginPath();
+      ctx.arc(startX + i * dotSpacing, sy + m.size + 10, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 }
 
@@ -963,7 +1011,14 @@ function doMeleeAttack(p) {
     const dx = m.x - ax, dy = m.y - ay;
     const dist = Math.sqrt(dx * dx + dy * dy);
     if (dist < range) {
-      damageMonster(m, 40 + Math.random() * 20);
+      m.meleeHits++;
+      m.hitFlash = 8;
+      if (m.meleeHits >= 5) {
+        explodeMonster(m);
+      } else {
+        damageMonster(m, 40 + Math.random() * 20);
+        showFloatingText(m.x, m.y - m.size - 6, '★'.repeat(m.meleeHits), '#ffd700');
+      }
       hit = true;
     }
   }
@@ -971,9 +1026,51 @@ function doMeleeAttack(p) {
   if (hit) {
     spawnParticles(ax, ay, '#ffd700', 8, 5);
   }
-
-  // Hit sparkle regardless
   spawnParticles(ax, ay, '#ff69b4', 5, 3);
+}
+
+function explodeMonster(m) {
+  if (m.dead || m.exploding) return;
+  m.exploding = true;
+  m.explodeTimer = 0;
+  score += m.loot * 3;
+  screenShake = 30;
+
+  // Five shockwave rings, large and staggered
+  shockwaves.push({ x: m.x, y: m.y, radius: m.size,       maxRadius: 320, life: 40, maxLife: 40, color: m.color,    delay: 0  });
+  shockwaves.push({ x: m.x, y: m.y, radius: m.size * 0.6, maxRadius: 260, life: 36, maxLife: 36, color: '#ffd700',  delay: 4  });
+  shockwaves.push({ x: m.x, y: m.y, radius: 0,             maxRadius: 200, life: 30, maxLife: 30, color: '#ff69b4',  delay: 8  });
+  shockwaves.push({ x: m.x, y: m.y, radius: 0,             maxRadius: 150, life: 24, maxLife: 24, color: '#ffffff',  delay: 12 });
+  shockwaves.push({ x: m.x, y: m.y, radius: 0,             maxRadius: 100, life: 20, maxLife: 20, color: '#ff1493',  delay: 16 });
+
+  // Massive particle burst — more particles, faster
+  spawnParticles(m.x, m.y, m.color,   60, 16);
+  spawnParticles(m.x, m.y, '#ffd700', 50, 20);
+  spawnParticles(m.x, m.y, '#ff1493', 50, 14);
+  spawnParticles(m.x, m.y, '#ffffff', 40, 22);
+  spawnParticles(m.x, m.y, '#c084fc', 30, 18);
+
+  // Double ring of hearts — inner + outer
+  for (let ring = 0; ring < 2; ring++) {
+    const count = ring === 0 ? 20 : 12;
+    const baseSpd = ring === 0 ? 12 : 7;
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count + ring * 0.3;
+      const spd = baseSpd + Math.random() * 6;
+      particles.push({
+        x: m.x, y: m.y,
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd,
+        color: ring === 0 ? '#ff69b4' : '#ffd700',
+        life: 80 + ring * 20, maxLife: 80 + ring * 20,
+        size: 14 + Math.random() * 12,
+        heart: true,
+      });
+    }
+  }
+
+  showFloatingText(m.x, m.y - m.size - 10, 'BOOM! x3', '#ffd700');
+  roses.push({ x: m.x, y: m.y, life: 180 });
 }
 
 function damageMonster(m, dmg) {
@@ -1000,6 +1097,11 @@ function showFloatingText(x, y, text, color) {
 
 function updateMonster(m) {
   if (m.dead) return;
+  if (m.exploding) {
+    m.explodeTimer++;
+    if (m.explodeTimer >= 20) m.dead = true;
+    return;
+  }
 
   const dx = player.x - m.x;
   const dy = player.y - m.y;
@@ -1084,7 +1186,6 @@ function updateProjectiles() {
         const dx = m.x - p.x, dy = m.y - p.y;
         if (Math.sqrt(dx * dx + dy * dy) < m.size + (p.size || 8)) {
           damageMonster(m, p.damage);
-          spawnParticles(m.x, m.y, '#ff69b4', 10, 5);
           if (p.pierce && p.pierceCount > 0) {
             p.pierceCount--;
             // Slow the projectile slightly on pierce
@@ -1237,6 +1338,23 @@ function render() {
     ctx.globalAlpha = 1;
   }
 
+  // Shockwaves
+  for (const sw of shockwaves) {
+    if (sw.delay > 0) continue;
+    const [sx, sy] = worldToScreen(sw.x, sw.y);
+    const alpha = (sw.life / sw.maxLife) * 0.7;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = sw.color;
+    ctx.lineWidth = 4 + (1 - sw.life / sw.maxLife) * 8;
+    ctx.shadowColor = sw.color;
+    ctx.shadowBlur = 20;
+    ctx.beginPath();
+    ctx.arc(sx, sy, sw.radius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
   // Entities
   drawPrince(prince);
   for (const m of monsters) drawMonster(m);
@@ -1307,6 +1425,7 @@ function initZone(zoneIdx) {
   projectiles = [];
   particles = [];
   roses = [];
+  shockwaves = [];
   floatingTexts.length = 0;
   camera = { x: 0, y: 0 };
   spawnMonsters(zoneIdx);
@@ -1342,6 +1461,14 @@ function gameLoop() {
       if (roses[i].life <= 0) roses.splice(i, 1);
     }
 
+    if (screenShake > 0) screenShake = Math.max(0, screenShake - 1.2);
+    for (let i = shockwaves.length - 1; i >= 0; i--) {
+      const sw = shockwaves[i];
+      if (sw.delay > 0) { sw.delay--; continue; }
+      sw.radius += (sw.maxRadius - sw.radius) * 0.14;
+      sw.life--;
+      if (sw.life <= 0) shockwaves.splice(i, 1);
+    }
     render();
     updateHUD();
     drawMinimap();
