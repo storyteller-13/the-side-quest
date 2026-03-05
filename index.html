@@ -225,9 +225,13 @@ canvas.addEventListener('contextmenu', e => e.preventDefault());
 
 // ─── Map Generation ──────────────────────────────────────────────────────────
 const ZONES = [
-  { name: 'ZONE 1 - THE DARK STREETS', bg: '#1a0028', monsterCount: 6, monsterSpeed: 1.2 },
-  { name: 'ZONE 2 - HAUNTED GARDENS',  bg: '#001a0a', monsterCount: 10, monsterSpeed: 1.5 },
-  { name: 'ZONE 3 - THE ROSE CASTLE',  bg: '#1a0010', monsterCount: 14, monsterSpeed: 1.8 },
+  { name: 'ZONE 1 - THE DARK STREETS',   bg: '#1a0028', monsterCount: 4,  monsterSpeed: 1.0, excuse: "I'M NOT READY!!" },
+  { name: 'ZONE 2 - HAUNTED GARDENS',    bg: '#001a0a', monsterCount: 7,  monsterSpeed: 1.2, excuse: "I FORGOT SOMETHING!!" },
+  { name: 'ZONE 3 - THE CURSED FOREST',  bg: '#050f00', monsterCount: 9,  monsterSpeed: 1.4, excuse: "I LEFT THE OVEN ON!!" },
+  { name: 'ZONE 4 - THE DEMON SWAMP',    bg: '#001010', monsterCount: 12, monsterSpeed: 1.6, excuse: "I NEED TO WASH MY HAIR!!" },
+  { name: 'ZONE 5 - THE FIRE CAVES',     bg: '#1a0500', monsterCount: 14, monsterSpeed: 1.8, excuse: "MY MOM IS CALLING!!" },
+  { name: 'ZONE 6 - THE FINAL FORTRESS', bg: '#100010', monsterCount: 16, monsterSpeed: 2.0, excuse: "...ALMOST! ONE MORE LEVEL!!" },
+  { name: 'ZONE 7 - THE ROSE GARDEN',    bg: '#1a0015', monsterCount: 18, monsterSpeed: 2.2, excuse: null },
 ];
 
 let tilemap = [];
@@ -240,6 +244,7 @@ let prince = null;
 let player = null;
 let camera = { x: 0, y: 0 };
 let screenShake = 0;
+let zoneTransitionTimer = 0;
 
 function generateMap(zoneIdx) {
   tilemap = [];
@@ -386,6 +391,11 @@ function spawnPrince() {
     size: 18,
     bobTimer: 0,
     reached: false,
+    fleeing: false,
+    fleeVx: 0,
+    fleeVy: 0,
+    speech: '',
+    speechTimer: 0,
   };
 }
 
@@ -852,14 +862,42 @@ function drawPrince(p) {
     drawHeart(ctx, hx, hy, 5, '#ff69b4', 0.6 + Math.sin(t) * 0.3);
   }
 
-  // "REACH ME!" indicator
-  ctx.fillStyle = '#ffd700';
-  ctx.font = 'bold 11px monospace';
-  ctx.textAlign = 'center';
-  ctx.shadowColor = '#ffd700';
-  ctx.shadowBlur = 8;
-  ctx.fillText('REACH ME!', sx, sy - p.size - 50);
-  ctx.shadowBlur = 0;
+  if (p.fleeing && p.speech && p.speechTimer > 0) {
+    // Speech bubble
+    const alpha = Math.min(1, p.speechTimer / 30);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.font = 'bold 15px monospace';
+    ctx.textAlign = 'center';
+    const tw = ctx.measureText(p.speech).width;
+    const bx = sx - tw / 2 - 12, by = sy - p.size - 72;
+    const bw = tw + 24, bh = 30;
+    // Bubble background
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.roundRect(bx, by, bw, bh, 6);
+    ctx.fill();
+    // Bubble tail
+    ctx.beginPath();
+    ctx.moveTo(sx - 8, by + bh);
+    ctx.lineTo(sx + 8, by + bh);
+    ctx.lineTo(sx, by + bh + 12);
+    ctx.closePath();
+    ctx.fill();
+    // Text
+    ctx.fillStyle = '#1a0028';
+    ctx.fillText(p.speech, sx, by + 20);
+    ctx.restore();
+  } else if (!p.fleeing) {
+    // "REACH ME!" indicator
+    ctx.fillStyle = '#ffd700';
+    ctx.font = 'bold 11px monospace';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = '#ffd700';
+    ctx.shadowBlur = 8;
+    ctx.fillText('REACH ME!', sx, sy - p.size - 50);
+    ctx.shadowBlur = 0;
+  }
 }
 
 function drawProjectile(proj) {
@@ -1233,14 +1271,39 @@ function updateCamera() {
 }
 
 function checkWin() {
-  if (!prince || player.dead) return;
+  if (!prince || player.dead || prince.fleeing) return;
   const dx = player.x - prince.x;
   const dy = player.y - prince.y;
   const dist = Math.sqrt(dx * dx + dy * dy);
-  if (dist < 60) {
-    state = 'win';
-    spawnHearts(prince.x, prince.y);
-    spawnHearts(player.x, player.y);
+  if (dist < 80) {
+    if (zone >= 6) {
+      // Zone 7 — he finally stays!
+      state = 'win';
+      spawnHearts(prince.x, prince.y);
+      spawnHearts(player.x, player.y);
+    } else {
+      // He runs away
+      prince.fleeing = true;
+      prince.speech = ZONES[zone].excuse;
+      prince.speechTimer = 180;
+      const len = Math.sqrt(dx * dx + dy * dy) || 1;
+      prince.fleeVx = -(dx / len) * 6;
+      prince.fleeVy = -(dy / len) * 6;
+      spawnHearts(prince.x, prince.y);
+      screenShake = 8;
+    }
+  }
+}
+
+function updatePrince() {
+  if (!prince || !prince.fleeing) return;
+  prince.x += prince.fleeVx;
+  prince.y += prince.fleeVy;
+  prince.fleeVx *= 0.98; // slight slowdown
+  prince.fleeVy *= 0.98;
+  if (prince.speechTimer > 0) prince.speechTimer--;
+  if (zoneTransitionTimer === 0 && prince.speechTimer < 120) {
+    zoneTransitionTimer = 160;
   }
 }
 
@@ -1298,7 +1361,7 @@ function updateHUD() {
   document.getElementById('healthFill').style.width = Math.max(0, player.hp / player.maxHp * 100) + '%';
   document.getElementById('scoreDisplay').textContent = score.toString().padStart(6, '0');
   document.getElementById('ammoDisplay').textContent = 'HEARTS: ' + player.ammo;
-  document.getElementById('levelDisplay').textContent = ZONES[zone].name;
+  document.getElementById('levelDisplay').textContent = `${ZONES[zone].name}  [${zone + 1}/7]`;
 
   // Wanted stars based on monsters killed
   const aliveMonsters = monsters.filter(m => !m.dead).length;
@@ -1426,6 +1489,7 @@ function initZone(zoneIdx) {
   particles = [];
   roses = [];
   shockwaves = [];
+  zoneTransitionTimer = 0;
   floatingTexts.length = 0;
   camera = { x: 0, y: 0 };
   spawnMonsters(zoneIdx);
@@ -1436,6 +1500,10 @@ function startGame() {
   score = 0;
   zone = 0;
   initZone(zone);
+  const fill = document.getElementById('healthFill');
+  fill.style.transition = 'none';
+  fill.style.width = '100%';
+  requestAnimationFrame(() => fill.style.transition = '');
   document.getElementById('overlay').style.display = 'none';
   state = 'playing';
 }
@@ -1453,6 +1521,7 @@ function gameLoop() {
     updateParticles();
     updateFloatingTexts();
     updateCamera();
+    updatePrince();
     checkWin();
 
     // Update rose drops
@@ -1462,6 +1531,42 @@ function gameLoop() {
     }
 
     if (screenShake > 0) screenShake = Math.max(0, screenShake - 1.2);
+
+    // Zone transition
+    if (zoneTransitionTimer > 0) {
+      zoneTransitionTimer--;
+      const t = zoneTransitionTimer;
+      if (t < 80) {
+        // Fade in next zone
+        const alpha = 1 - t / 80;
+        ctx.fillStyle = `rgba(0,0,0,${alpha})`;
+      } else {
+        // Fade out current
+        const alpha = (t - 80) / 80;
+        ctx.fillStyle = `rgba(0,0,0,${alpha})`;
+      }
+      // At the midpoint, load the next zone
+      if (t === 80) {
+        zone++;
+        initZone(zone);
+      }
+      // Draw transition text at peak darkness (before zone increments at t=80)
+      if (t >= 80 && t < 130) {
+        ctx.fillStyle = 'rgba(0,0,0,0.92)';
+        ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = '#ff69b4';
+        ctx.font = 'bold 28px monospace';
+        ctx.textAlign = 'center';
+        ctx.shadowColor = '#ff69b4';
+        ctx.shadowBlur = 20;
+        ctx.fillText('HE RAN AWAY... AGAIN.', W / 2, H / 2 - 24);
+        ctx.fillStyle = '#c084fc';
+        ctx.font = 'bold 14px monospace';
+        ctx.shadowColor = '#c084fc';
+        ctx.fillText(`ENTERING ${ZONES[Math.min(zone, ZONES.length - 1)].name}`, W / 2, H / 2 + 18);
+        ctx.shadowBlur = 0;
+      }
+    }
     for (let i = shockwaves.length - 1; i >= 0; i--) {
       const sw = shockwaves[i];
       if (sw.delay > 0) { sw.delay--; continue; }
@@ -1485,7 +1590,7 @@ function gameLoop() {
     updateParticles();
     updateCamera();
     render();
-    drawOverlay('TRUE LOVE!', 'The princess and prince are reunited!', 'PLAY AGAIN', 'winBtn');
+    drawOverlay('TRUE LOVE! ♥', 'He finally stayed. All 7 levels worth it.', 'PLAY AGAIN', 'winBtn');
     document.getElementById('winBtn').addEventListener('click', startGame);
     state = 'winScreen';
   } else {
