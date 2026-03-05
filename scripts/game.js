@@ -252,7 +252,7 @@ function spawnMonsters(zoneIdx) {
 
 function spawnPrince() {
   prince = {
-    x: 45.5*TILE, y: 17*TILE, size:18, bobTimer:0, reached:false,
+    x: 42*TILE, y: 17*TILE, size:18, bobTimer:0, reached:false,
     fleeing:false, fleeVx:0, fleeVy:0,
     speech:'', speechTimer:0,
     tauntTimer: 300 + Math.random()*200,
