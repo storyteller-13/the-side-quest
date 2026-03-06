@@ -70,7 +70,7 @@ window.CONFIG = {
     { name: 'THE HAUNTED CAVE IN OAHU',    bg: '#001a0a', mapEmoji: '🐉', monsterCount: 13, monsterSpeed: 1.2, fleeSpeed: 8,
       excuse: "I FORGOT SOMETHING!",
       taunts: ["SO MANY MONSTERS!"] },
-    { name: 'THE CURSED FOREST IN BRAZIL',  bg: '#0d1a00', mapEmoji: '🐊', monsterCount: 18, monsterSpeed: 1.4, fleeSpeed: 10,
+    { name: 'THE CURSED FOREST IN BRAZIL',  bg: '#0d1a00', mapEmoji: '🐅', monsterCount: 18, monsterSpeed: 1.4, fleeSpeed: 10,
       excuse: "I LEFT THE OVEN ON!",
       taunts: ["I HAVE PLACES TO BE!"] },
     { name: 'THE DEMON SWAMP IN NEW ORLEANS',    bg: '#001a14', mapEmoji: '👹', monsterCount: 22, monsterSpeed: 1.6, fleeSpeed: 12,
