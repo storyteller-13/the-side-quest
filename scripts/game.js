@@ -199,16 +199,23 @@ function generateMap() {
     }
   };
   const dirs = [[0,1],[0,-1],[1,0],[-1,0]]; // E,W,S,N (indices 0,1,2,3)
-  const eastBias = [0,0,0,0,0,0, 2,2, 3];   // bias E (toward castle), some S/N, no W
+  const eastBias = [0,0,0,0, 2,2,2, 3,3,3]; // E 40%, S 30%, N 30% — meander, never straight
 
   for (let worm = 0; worm < 12; worm++) {
     let r = 4 + Math.floor(Math.random() * (ROWS - 10));
     let c = 2 + Math.floor(Math.random() * 20);
     const steps = 560 + Math.floor(Math.random() * 360);
+    let stepsSinceTurn = 0;
     for (let s = 0; s < steps; s++) {
       const width = Math.random() < 0.4 ? 1 : (Math.random() < 0.6 ? 2 : 3);
       carve(r, c, width);
-      const d = dirs[eastBias[Math.floor(Math.random() * eastBias.length)]];
+      // Force a turn every 15–35 steps so the path is never a long straight line
+      stepsSinceTurn++;
+      const forceTurn = stepsSinceTurn >= 15 + Math.floor(Math.random() * 20);
+      if (forceTurn) stepsSinceTurn = 0;
+      const d = forceTurn
+        ? dirs[2 + Math.floor(Math.random() * 2)] // S or N only
+        : dirs[eastBias[Math.floor(Math.random() * eastBias.length)]];
       r = Math.max(1, Math.min(ROWS - 2, r + d[0]));
       c = Math.max(1, Math.min(COLS - 2, c + d[1]));
     }
@@ -227,17 +234,24 @@ function generateMap() {
   for (let r = castleRowStart; r < castleRowEnd; r++) for (let c = castleColStart; c < castleColEnd; c++) tilemap[r][c] = T.CASTLE;
   for (let c = roadToCastleCol; c < castleColEnd; c++) { tilemap[16][c] = T.ROAD; tilemap[17][c] = T.ROAD; tilemap[18][c] = T.ROAD; }
 
-  // Connect left side to right: carve horizontal meanders so paths reach castle
+  // Connect left to right with snaking bands (never straight: jog row every 8–15 steps)
   for (let band = 0; band < 10; band++) {
-    const row = 6 + band * 14 + Math.floor(Math.random() * 10);
-    if (row >= ROWS - 1) continue;
+    let row = 6 + band * 14 + Math.floor(Math.random() * 10);
+    if (row >= ROWS - 2) continue;
     const len = 100 + Math.floor(Math.random() * 80);
     let c = 5 + Math.floor(Math.random() * 25);
+    let stepsSinceJog = 0;
     for (let i = 0; i < len && c < COLS - 2; i++) {
       const w = Math.random() < 0.5 ? 1 : 2;
       carve(row, c, w);
       carve(row + 1, c, w);
       c += 1 + (Math.random() < 0.6 ? 1 : 0);
+      stepsSinceJog++;
+      if (stepsSinceJog >= 8 + Math.floor(Math.random() * 8)) {
+        stepsSinceJog = 0;
+        const jog = (Math.random() < 0.5 ? -1 : 1);
+        row = Math.max(2, Math.min(ROWS - 3, row + jog));
+      }
     }
   }
 
@@ -266,16 +280,34 @@ function generateMap() {
   }
   const princeReachable = reached[castleEntranceRow][castleEntranceCol];
   if (!princeReachable) {
-    // Carve an L-shaped path: (playerRow, playerCol) -> (playerRow, castleEntranceCol) -> (castleEntranceRow, castleEntranceCol)
-    const cMin = Math.min(playerCol, castleEntranceCol), cMax = Math.max(playerCol, castleEntranceCol);
-    const rMin = Math.min(playerRow, castleEntranceRow), rMax = Math.max(playerRow, castleEntranceRow);
-    for (let c = cMin; c <= cMax; c++) {
-      tilemap[playerRow][c] = T.ROAD;
-      if (playerRow + 1 < ROWS) tilemap[playerRow + 1][c] = T.ROAD;
+    // Carve a staircase path (never straight): 3–4 segments so always at least 2 turns
+    const setRoad = (rr, cc) => {
+      if (rr >= 0 && rr < ROWS && cc >= 0 && cc < COLS) {
+        tilemap[rr][cc] = T.ROAD;
+        if (cc + 1 < COLS) tilemap[rr][cc + 1] = T.ROAD;
+      }
+    };
+    const numSegments = 3 + Math.floor(Math.random() * 2);
+    const totalDc = castleEntranceCol - playerCol;
+    const totalDr = castleEntranceRow - playerRow;
+    const colPerSeg = Math.max(1, Math.floor(totalDc / numSegments));
+    let r = playerRow, c = playerCol;
+    for (let seg = 0; seg < numSegments; seg++) {
+      const cEnd = (seg === numSegments - 1) ? castleEntranceCol : Math.min(c + colPerSeg, castleEntranceCol);
+      for (let cc = c; cc <= cEnd; cc++) { setRoad(r, cc); setRoad(r + 1, cc); }
+      c = cEnd;
+      if (seg < numSegments - 1) {
+        const rStep = totalDr >= 0 ? 1 : -1;
+        const steps = Math.min(Math.abs(totalDr), 2 + Math.floor(Math.random() * 5));
+        for (let k = 0; k < steps; k++) {
+          r = r + rStep;
+          r = Math.max(1, Math.min(ROWS - 2, r));
+          setRoad(r, c); setRoad(r + 1, c);
+        }
+      }
     }
-    for (let r = rMin; r <= rMax; r++) {
-      tilemap[r][castleEntranceCol] = T.ROAD;
-      if (castleEntranceCol + 1 < COLS) tilemap[r][castleEntranceCol + 1] = T.ROAD;
+    for (let rr = Math.min(r, castleEntranceRow); rr <= Math.max(r, castleEntranceRow); rr++) {
+      setRoad(rr, castleEntranceCol); setRoad(rr, castleEntranceCol + 1);
     }
   }
 
