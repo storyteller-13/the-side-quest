@@ -4,9 +4,11 @@ install:
 	npm install
 	$(MAKE) install-hooks
 
-# Set Git to use .husky for hooks (required for pre-commit to run). Safe to run again.
+# Set Git to use .husky for hooks and create pre-commit (required for pre-commit to run). Safe to run again.
 install-hooks:
-	chmod +x .husky/pre-commit 2>/dev/null || true
+	mkdir -p .husky
+	@printf '%s\n' '#!/usr/bin/env sh' 'set -e' 'npm run test && npm run coverage' > .husky/pre-commit
+	chmod +x .husky/pre-commit
 	npx husky
 
 # Run unit tests (config, API, game-utils, HTML)
