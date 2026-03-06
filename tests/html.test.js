@@ -28,8 +28,7 @@ describe('index.html', () => {
     expect(minimap.getAttribute('height')).toBe('80');
   });
 
-  it('includes config and game script', () => {
-    expect(indexHtml).toContain('config.js');
+  it('includes game script (loads config as module dependency)', () => {
     expect(indexHtml).toContain('scripts/game.js');
   });
 

@@ -1,4 +1,7 @@
 // ─── Constants ───────────────────────────────────────────────────────────────
+import CONFIG from '../config.js';
+import { zoneDisplayName, mixHex } from './game-utils.js';
+
 let W = window.innerWidth, H = window.innerHeight;
 const TILE = 32;
 const COLS = 160, ROWS = 112;
@@ -112,8 +115,6 @@ if (window.visualViewport) {
 }
 
 // ─── Init text from config ────────────────────────────────────────────────────
-import { zoneDisplayName, mixHex } from './game-utils.js';
-
 function initTextFromConfig() {
   document.title = CONFIG.title;
   document.getElementById('healthLabel').textContent = CONFIG.hud.health;
