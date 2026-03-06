@@ -6,6 +6,10 @@
 
 <br>
 
+- **[CODEX.md](CODEX.md)** — Codex-oriented project notes with a security checklist for safe code and API changes.
+
+<br>
+
 - start the local development server at **[`localhost:8044`](http://localhost:8044)**:
 
 ```bash
