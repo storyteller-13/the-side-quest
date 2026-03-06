@@ -32,4 +32,8 @@ server:
 deploy:
 	npm run deploy
 
-.PHONY: install install-hooks test test-watch coverage pre-commit server deploy
+# Remove generated artifacts (coverage, cache, dist, build)
+clean:
+	rm -rf coverage .cache dist build
+
+.PHONY: install install-hooks test test-watch coverage pre-commit server deploy clean
