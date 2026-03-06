@@ -179,7 +179,6 @@ let wallBlocks = []; // irregular rectangles { r, c, w, h } in tile coords
 let monsters = [];
 let projectiles = [];
 let particles = [];
-let roses = [];
 let shockwaves = [];
 let healthHearts = [];
 let prince = null;
@@ -282,12 +281,10 @@ function generateMap() {
     }
   }
 
-  // Sprinkle parks and roses on remaining wall tiles
+  // Sprinkle parks on remaining wall tiles
   for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
     if (tilemap[r][c] === T.WALL) {
-      const rnd = Math.random();
-      if (rnd < 0.05) tilemap[r][c] = T.PARK;
-      else if (rnd < 0.08) tilemap[r][c] = T.ROSE;
+      if (Math.random() < 0.05) tilemap[r][c] = T.PARK;
     }
   }
 
@@ -909,7 +906,6 @@ function explodeMonster(m) {
     }
   }
   showFloatingText(m.x,m.y-m.size-10,CONFIG.messages.boom,'#ff69b4');
-  roses.push({x:m.x,y:m.y,life:180});
 }
 
 function damageMonster(m, dmg) {
@@ -918,7 +914,6 @@ function damageMonster(m, dmg) {
     m.dead=true; score+=m.loot;
     if (Math.random()<0.3) { player.ammo=Math.min(player.ammo+1,10); showFloatingText(m.x,m.y,CONFIG.messages.heartPickup,'#ff69b4'); }
     spawnHearts(m.x,m.y); spawnParticles(m.x,m.y,m.color,15,6);
-    roses.push({x:m.x,y:m.y,life:180});
   }
 }
 
@@ -1130,11 +1125,6 @@ function render() {
   const sr=Math.floor(camera.y/TILE), er=Math.min(ROWS,sr+Math.ceil(H/TILE)+2);
   for (let r=sr;r<er;r++) for (let c=sc;c<ec;c++) drawTile(r,c);
   drawWallBlocks(sc, sr, ec, er);
-  for (const rose of roses) {
-    const [rsx,rsy]=worldToScreen(rose.x,rose.y);
-    ctx.fillStyle='#ff1493'; ctx.globalAlpha=rose.life/180;
-    ctx.beginPath(); ctx.arc(rsx,rsy,5,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
-  }
   for (const h of healthHearts) {
     const [hx, hy] = worldToScreen(h.x, h.y);
     if (hx < -20 || hx > W + 20 || hy < -20 || hy > H + 20) continue;
@@ -1326,7 +1316,7 @@ function updateAndDrawWinFloaters() {
 // ─── Init / Start ─────────────────────────────────────────────────────────────
 function initZone(zoneIdx) {
   generateMap();
-  player=createPlayer(); projectiles=[]; particles=[]; roses=[]; shockwaves=[];
+  player=createPlayer(); projectiles=[]; particles=[]; shockwaves=[];
   floatingTexts.length=0; camera={x:0,y:0}; zoneTransitionTimer=0;
   loveMeter=0; loveSoundPlayed=false;
   spawnMonsters(zoneIdx); spawnPrince(); spawnHealthHearts();
@@ -1354,7 +1344,6 @@ function gameLoop() {
       for (const m of monsters) updateMonster(m);
       updateProjectiles(); updateParticles(); updateFloatingTexts(); updateHealthHearts();
       updateCamera(); updatePrince(); checkWin();
-    for (let i=roses.length-1;i>=0;i--) { roses[i].life--; if (roses[i].life<=0) roses.splice(i,1); }
     if (screenShake>0) screenShake=Math.max(0,screenShake-1.2);
     for (let i=shockwaves.length-1;i>=0;i--) {
       const sw=shockwaves[i];
