@@ -548,8 +548,6 @@ function drawTile(r, c) {
   ctx.fillRect(sx, sy, TILE, TILE);
   if (t===T.CASTLE) {
     ctx.strokeStyle='#c084fc'; ctx.lineWidth=0.5; ctx.strokeRect(sx+1,sy+1,TILE-2,TILE-2);
-    if (r%2===0&&c%2===0) { ctx.fillStyle='rgba(192,132,252,0.1)'; ctx.fillRect(sx+4,sy+4,TILE-8,TILE-8); }
-    if (r===castleRowStart&&c>=COLS-8) { ctx.fillStyle='#c084fc'; for (let i=0;i<3;i++) ctx.fillRect(sx+2+i*10,sy,6,8); }
   }
 }
 
@@ -567,8 +565,6 @@ function drawWallBlocks(sc, sr, ec, er) {
     ctx.strokeStyle = '#2a1040'; ctx.lineWidth = 0.5;
     ctx.strokeRect(sx + 2, sy + 2, bw - 4, bh - 4);
     if ((b.r * 7 + b.c * 13) % 17 < 9) {
-      ctx.fillStyle = 'rgba(255,200,100,0.15)';
-      ctx.fillRect(sx + 8, sy + 6, 6, 8); ctx.fillRect(sx + bw/2 - 3, sy + 6, 6, 8);
       // Scale emoji to fit inside block so it's never cut (compound emojis can be ~2x wide)
       const pad = 6;
       const fit = Math.min(bw - pad, bh - pad);
