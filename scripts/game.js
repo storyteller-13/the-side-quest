@@ -486,12 +486,12 @@ function drawPrince(p) {
     ctx.font = 'bold 15px monospace'; ctx.textAlign = 'center';
     const tw = ctx.measureText(p.speech).width;
     const bw = tw + 28, bh = 32, bx = sx - bw/2, by = sy - p.size - 80;
-    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 6); ctx.fill();
-    ctx.strokeStyle = '#c084fc'; ctx.lineWidth = 2;
+    ctx.fillStyle = '#000'; ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 6); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 6); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(sx-8,by+bh); ctx.lineTo(sx+8,by+bh); ctx.lineTo(sx,by+bh+10); ctx.closePath();
-    ctx.fillStyle='#fff'; ctx.fill(); ctx.strokeStyle='#c084fc'; ctx.stroke();
-    ctx.fillStyle = '#1a0028'; ctx.fillText(p.speech, sx, by + 21);
+    ctx.fillStyle='#000'; ctx.fill(); ctx.strokeStyle='#fff'; ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.fillText(p.speech, sx, by + 21);
     ctx.restore();
   }
   if (!p.fleeing && !p.speechTimer) {
