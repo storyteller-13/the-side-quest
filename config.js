@@ -53,9 +53,7 @@ window.CONFIG = {
     saveSuccess: 'saved!',
     saveFailed: 'failed to save',
     leaderboardTitle: 'HIGH SCORES',
-    watchOnYoutube: 'Watch on YouTube',
-    saveUnavailable: 'Save unavailable — run "vercel env pull" to enable',
-    winMusicVideoId: 'tAGnKpE4NCI'  // Metallica - Nothing Else Matters
+    saveUnavailable: 'Save unavailable — run "vercel env pull" to enable'
   },
 
   // Death overlay

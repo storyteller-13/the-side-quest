@@ -1216,18 +1216,6 @@ function drawOverlay(title, sub, btnText, btnId) {
     ensureWinFloatersCanvas();
     winFloaters = [];
   }
-  if (btnId === 'winBtn' && CONFIG.cutscene.winMusicVideoId && !ov.querySelector('.win-video-link')) {
-    const wrap = document.createElement('div');
-    wrap.className = 'win-video-link';
-    const a = document.createElement('a');
-    a.href = `https://www.youtube.com/watch?v=${CONFIG.cutscene.winMusicVideoId}`;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    a.textContent = CONFIG.cutscene.watchOnYoutube || 'Watch on YouTube';
-    a.className = 'win-youtube-link';
-    wrap.appendChild(a);
-    ov.appendChild(wrap);
-  }
   ov.style.display='flex';
 }
 
