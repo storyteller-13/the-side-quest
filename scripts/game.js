@@ -175,6 +175,7 @@ canvas.addEventListener('contextmenu', e => e.preventDefault());
 
 // ─── World ───────────────────────────────────────────────────────────────────
 let tilemap = [];
+let wallBlocks = []; // irregular rectangles { r, c, w, h } in tile coords
 let monsters = [];
 let projectiles = [];
 let particles = [];
@@ -208,6 +209,45 @@ function generateMap() {
   }
   for (let r = 12; r < 22; r++) for (let c = 42; c < 49; c++) tilemap[r][c] = T.CASTLE;
   for (let c = 37; c < 49; c++) { tilemap[16][c] = T.ROAD; tilemap[17][c] = T.ROAD; tilemap[18][c] = T.ROAD; }
+  buildWallBlocks();
+}
+
+function buildWallBlocks() {
+  wallBlocks = [];
+  const used = Array(ROWS).fill(0).map(() => Array(COLS).fill(false));
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (tilemap[r][c] !== T.WALL || used[r][c]) continue;
+      let maxW = 0;
+      while (c + maxW < COLS && tilemap[r][c + maxW] === T.WALL) maxW++;
+      let maxH = 0;
+      while (r + maxH < ROWS) {
+        let ok = true;
+        for (let cc = c; cc < c + maxW && ok; cc++) if (tilemap[r + maxH][cc] !== T.WALL) ok = false;
+        if (!ok) break;
+        maxH++;
+      }
+      let bw, bh;
+      const roll = Math.random();
+      if (roll < 0.25) {
+        // small: 1x1, 1x2, or 2x1
+        bw = maxW === 1 ? 1 : (Math.random() < 0.5 ? 1 : 2);
+        bh = maxH === 1 ? 1 : (Math.random() < 0.5 ? 1 : 2);
+        bw = Math.min(bw, maxW); bh = Math.min(bh, maxH);
+      } else if (roll < 0.5) {
+        // medium: random but capped
+        bw = 1 + Math.floor(Math.random() * Math.min(maxW, 4));
+        bh = 1 + Math.floor(Math.random() * Math.min(maxH, 3));
+        bw = Math.min(bw, maxW); bh = Math.min(bh, maxH);
+      } else {
+        // large: take most or all of the rectangle
+        bw = maxW;
+        bh = maxH;
+      }
+      wallBlocks.push({ r, c, w: bw, h: bh });
+      for (let rr = r; rr < r + bh; rr++) for (let cc = c; cc < c + bw; cc++) used[rr][cc] = true;
+    }
+  }
 }
 
 function isWalkable(wx, wy, radius = 10) {
@@ -320,6 +360,7 @@ function mixHex(hex1, hex2, t) {
 }
 function drawTile(r, c) {
   const t = tilemap[r][c];
+  if (t === T.WALL) return; // walls drawn as irregular blocks in render()
   const [sx,sy] = worldToScreen(c*TILE, r*TILE);
   if (sx>W||sy>H||sx<-TILE||sy<-TILE) return;
   const zoneBg = CONFIG.zones[zone].bg;
@@ -329,19 +370,7 @@ function drawTile(r, c) {
     : [mixHex(baseColors[0], zoneBg, 0.35), mixHex(baseColors[1], zoneBg, 0.35)];
   ctx.fillStyle = colors[(r+c)%2];
   ctx.fillRect(sx, sy, TILE, TILE);
-  if (t===T.WALL) {
-    ctx.strokeStyle='#2a1040'; ctx.lineWidth=0.5;
-    ctx.strokeRect(sx+2,sy+2,TILE-4,TILE-4);
-    if ((r*7+c*13)%17===0) {
-      ctx.fillStyle='rgba(255,200,100,0.15)'; ctx.fillRect(sx+8,sy+6,6,8); ctx.fillRect(sx+18,sy+6,6,8);
-      const emoji = CONFIG.zones[zone].mapEmoji || '🧱';
-      ctx.font = '22px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.fillText(emoji, sx + TILE/2, sy + TILE/2);
-    }
-  } else if (t===T.ROSE) {
+  if (t===T.ROSE) {
     ctx.fillStyle='#ff1493'; ctx.beginPath(); ctx.arc(sx+TILE/2,sy+TILE/2,5,0,Math.PI*2); ctx.fill();
     ctx.strokeStyle='#2d5a1b'; ctx.lineWidth=2;
     ctx.beginPath(); ctx.moveTo(sx+TILE/2,sy+TILE/2+5); ctx.lineTo(sx+TILE/2,sy+TILE-4); ctx.stroke();
@@ -349,6 +378,31 @@ function drawTile(r, c) {
     ctx.strokeStyle='#c084fc'; ctx.lineWidth=0.5; ctx.strokeRect(sx+1,sy+1,TILE-2,TILE-2);
     if (r%2===0&&c%2===0) { ctx.fillStyle='rgba(192,132,252,0.1)'; ctx.fillRect(sx+4,sy+4,TILE-8,TILE-8); }
     if (r===12&&c>=42) { ctx.fillStyle='#c084fc'; for (let i=0;i<3;i++) ctx.fillRect(sx+2+i*10,sy,6,8); }
+  }
+}
+
+function drawWallBlocks(sc, sr, ec, er) {
+  const zoneBg = CONFIG.zones[zone].bg;
+  const baseColors = tileColors[T.WALL];
+  const colors = [mixHex(baseColors[0], zoneBg, 0.35), mixHex(baseColors[1], zoneBg, 0.35)];
+  for (const b of wallBlocks) {
+    if (b.r + b.h <= sr || b.r >= er || b.c + b.w <= sc || b.c >= ec) continue;
+    const [sx, sy] = worldToScreen(b.c * TILE, b.r * TILE);
+    const bw = b.w * TILE, bh = b.h * TILE;
+    if (sx > W + TILE || sy > H + TILE || sx + bw < -TILE || sy + bh < -TILE) continue;
+    ctx.fillStyle = colors[(b.r + b.c) % 2];
+    ctx.fillRect(sx, sy, bw, bh);
+    ctx.strokeStyle = '#2a1040'; ctx.lineWidth = 0.5;
+    ctx.strokeRect(sx + 2, sy + 2, bw - 4, bh - 4);
+    if ((b.r * 7 + b.c * 13) % 17 === 0) {
+      ctx.fillStyle = 'rgba(255,200,100,0.15)';
+      ctx.fillRect(sx + 8, sy + 6, 6, 8); ctx.fillRect(sx + bw/2 - 3, sy + 6, 6, 8);
+      const emoji = CONFIG.zones[zone].mapEmoji || '🧱';
+      ctx.font = Math.round(Math.min(bw, bh) * 0.6) + 'px sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.fillText(emoji, sx + bw/2, sy + bh/2);
+    }
   }
 }
 
@@ -844,6 +898,7 @@ function render() {
   const sc=Math.floor(camera.x/TILE), ec=Math.min(COLS,sc+Math.ceil(W/TILE)+2);
   const sr=Math.floor(camera.y/TILE), er=Math.min(ROWS,sr+Math.ceil(H/TILE)+2);
   for (let r=sr;r<er;r++) for (let c=sc;c<ec;c++) drawTile(r,c);
+  drawWallBlocks(sc, sr, ec, er);
   for (const rose of roses) {
     const [rsx,rsy]=worldToScreen(rose.x,rose.y);
     ctx.fillStyle='#ff1493'; ctx.globalAlpha=rose.life/180;
