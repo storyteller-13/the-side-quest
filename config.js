@@ -89,10 +89,10 @@ window.CONFIG = {
 
   // Monster types (name, color, eyeColor, hp, speed, damage, size, loot)
   monsterTypes: [
-    { name: 'goblin',   color: '#4ade80', eyeColor: '#ff0', hp: 30,  speed: 1.1, damage: 8,  size: 14, loot: 50  },
-    { name: 'wraith',   color: '#a78bfa', eyeColor: '#fff', hp: 50,  speed: 1.4, damage: 12, size: 16, loot: 80  },
-    { name: 'ogre',     color: '#f87171', eyeColor: '#ff0', hp: 100, speed: 0.7, damage: 20, size: 22, loot: 150 },
-    { name: 'bat',      color: '#94a3b8', eyeColor: '#f00', hp: 20,  speed: 2.0, damage: 6,  size: 10, loot: 30  },
-    { name: 'skeleton', color: '#e2e8f0', eyeColor: '#f00', hp: 40,  speed: 1.3, damage: 10, size: 15, loot: 60  }
+    { name: 'goblin',   color: '#2d5a27', eyeColor: '#6b6b00', hp: 30,  speed: 1.1, damage: 8,  size: 14, loot: 50  },
+    { name: 'wraith',   color: '#2e1065', eyeColor: '#a78bfa', hp: 50,  speed: 1.4, damage: 12, size: 16, loot: 80  },
+    { name: 'ogre',     color: '#5c1a1a', eyeColor: '#cc2222', hp: 100, speed: 0.7, damage: 20, size: 22, loot: 150 },
+    { name: 'bat',      color: '#1e293b', eyeColor: '#ff3333', hp: 20,  speed: 2.0, damage: 6,  size: 10, loot: 30  },
+    { name: 'skeleton', color: '#5c5044', eyeColor: '#8b0000', hp: 40,  speed: 1.3, damage: 10, size: 15, loot: 60  }
   ]
 };
