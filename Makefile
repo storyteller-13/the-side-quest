@@ -9,7 +9,7 @@ server:
 
 # Needs Vercel CLI + linked project; run `vercel env pull` once for KV/Redis env
 dev:
-	vercel dev
+	vercel dev --listen $(PORT)
 
 deploy:
 	npm run deploy
