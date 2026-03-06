@@ -355,7 +355,13 @@ function drawTile(r, c) {
 // ─── Draw Player ─────────────────────────────────────────────────────────────
 function drawPlayer(p) {
   const [sx,sy] = worldToScreen(p.x, p.y);
-  ctx.save(); ctx.translate(sx,sy); ctx.rotate(p.facing);
+  ctx.save(); ctx.translate(sx,sy);
+  const glow = ctx.createRadialGradient(0,0,0,0,0,38);
+  glow.addColorStop(0,'rgba(255,105,180,0.45)');
+  glow.addColorStop(0.4,'rgba(255,20,147,0.2)');
+  glow.addColorStop(1,'rgba(255,105,180,0)');
+  ctx.fillStyle=glow; ctx.beginPath(); ctx.arc(0,0,38,0,Math.PI*2); ctx.fill();
+  ctx.rotate(p.facing);
   if (p.invincible>0 && Math.floor(p.invincible/4)%2===0) ctx.globalAlpha=0.4;
   ctx.fillStyle='#0d0d0d';
   ctx.beginPath(); ctx.moveTo(-9,4); ctx.lineTo(9,4); ctx.lineTo(12,20); ctx.lineTo(-12,20); ctx.closePath(); ctx.fill();
@@ -403,9 +409,9 @@ function drawPlayer(p) {
     ctx.beginPath(); ctx.arc(sx,sy,24+charge*20,-Math.PI/2,-Math.PI/2+Math.PI*2*charge); ctx.stroke();
     ctx.restore();
   }
-  const grd=ctx.createRadialGradient(sx,sy,0,sx,sy,28);
-  grd.addColorStop(0,'rgba(120,0,200,0.18)'); grd.addColorStop(1,'rgba(120,0,200,0)');
-  ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(sx,sy,28,0,Math.PI*2); ctx.fill();
+  const grd=ctx.createRadialGradient(sx,sy,0,sx,sy,36);
+  grd.addColorStop(0,'rgba(255,105,180,0.25)'); grd.addColorStop(0.5,'rgba(200,50,150,0.08)'); grd.addColorStop(1,'rgba(255,105,180,0)');
+  ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(sx,sy,36,0,Math.PI*2); ctx.fill();
 }
 
 // ─── Draw Monster ─────────────────────────────────────────────────────────────
