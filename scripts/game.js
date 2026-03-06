@@ -2,7 +2,8 @@
 let W = window.innerWidth, H = window.innerHeight;
 const TILE = 32;
 const COLS = 160, ROWS = 112;
-const T = { ROAD: 0, WALL: 1, GRASS: 2, PARK: 3, HEART_TILE: 4, CASTLE: 5 };
+const T = { ROAD: 0, WALL: 1, PARK: 3, CASTLE: 5 };
+const DIRS = [[0,1],[0,-1],[1,0],[-1,0]];
 
 // ─── Audio ───────────────────────────────────────────────────────────────────
 let audioCtx = null;
@@ -200,7 +201,6 @@ function generateMap() {
       if (rr >= 0 && rr < ROWS && cc >= 0 && cc < COLS) tilemap[rr][cc] = T.ROAD;
     }
   };
-  const dirs = [[0,1],[0,-1],[1,0],[-1,0]]; // E,W,S,N (indices 0,1,2,3)
   const eastBias = [0,0,0,0, 2,2,2, 3,3,3]; // E 40%, S 30%, N 30% — meander, never straight
 
   for (let worm = 0; worm < 10; worm++) {
@@ -216,8 +216,8 @@ function generateMap() {
       const forceTurn = stepsSinceTurn >= 15 + Math.floor(Math.random() * 20);
       if (forceTurn) stepsSinceTurn = 0;
       const d = forceTurn
-        ? dirs[2 + Math.floor(Math.random() * 2)] // S or N only
-        : dirs[eastBias[Math.floor(Math.random() * eastBias.length)]];
+        ? DIRS[2 + Math.floor(Math.random() * 2)] // S or N only
+        : DIRS[eastBias[Math.floor(Math.random() * eastBias.length)]];
       r = Math.max(1, Math.min(ROWS - 2, r + d[0]));
       c = Math.max(1, Math.min(COLS - 2, c + d[1]));
     }
@@ -297,7 +297,7 @@ function generateMap() {
   reached[playerRow][playerCol] = true;
   while (q.length) {
     const [r, c] = q.shift();
-    for (const [dr, dc] of [[0,1],[0,-1],[1,0],[-1,0]]) {
+    for (const [dr, dc] of DIRS) {
       const rr = r + dr, cc = c + dc;
       if (walkable(rr, cc) && !reached[rr][cc]) { reached[rr][cc] = true; q.push([rr, cc]); }
     }
@@ -412,7 +412,7 @@ function spawnMonsters(zoneIdx) {
   reached[playerRow][playerCol] = true;
   while (q.length) {
     const [r, c] = q.shift();
-    for (const [dr, dc] of [[0,1],[0,-1],[1,0],[-1,0]]) {
+    for (const [dr, dc] of DIRS) {
       const rr = r + dr, cc = c + dc;
       if (walkable(rr, cc) && !reached[rr][cc]) { reached[rr][cc] = true; q.push([rr, cc]); }
     }
@@ -460,7 +460,7 @@ function spawnHealthHearts() {
   reached[playerRow][playerCol] = true;
   while (q.length) {
     const [r, c] = q.shift();
-    for (const [dr, dc] of [[0,1],[0,-1],[1,0],[-1,0]]) {
+    for (const [dr, dc] of DIRS) {
       const rr = r + dr, cc = c + dc;
       if (walkable(rr, cc) && !reached[rr][cc]) { reached[rr][cc] = true; q.push([rr, cc]); }
     }
@@ -525,8 +525,7 @@ function worldToScreen(wx, wy) {
 // ─── Tile Rendering ──────────────────────────────────────────────────────────
 const tileColors = {
   [T.ROAD]:  ['#1a1a1a','#2d2d2d'], [T.WALL]:  ['#1a0028','#150020'],
-  [T.GRASS]: ['#1a2e1a','#162614'], [T.PARK]:  ['#0f2010','#0c1a0c'],
-  [T.CASTLE]:['#2a1a3a','#1e1228'],
+  [T.PARK]:  ['#0f2010','#0c1a0c'], [T.CASTLE]:['#2a1a3a','#1e1228'],
 };
 function mixHex(hex1, hex2, t) {
   const parse = (h) => ({ r: parseInt(h.slice(1,3),16), g: parseInt(h.slice(3,5),16), b: parseInt(h.slice(5,7),16) });
@@ -630,7 +629,7 @@ function drawPlayer(p) {
   if (p.chargeTime>0) {
     ctx.save();
     const charge=p.chargeTime/60;
-    ctx.strokeStyle=charge>=1?'#ff69b4':'#ff69b4'; ctx.lineWidth=2+charge*3;
+    ctx.strokeStyle='#ff69b4'; ctx.lineWidth=2+charge*3;
     ctx.globalAlpha=0.4+charge*0.5+Math.sin(frameCount*0.2)*0.3;
     ctx.shadowColor=charge>=1?'#ff69b4':'#ff1493'; ctx.shadowBlur=16;
     ctx.beginPath(); ctx.arc(sx,sy,24+charge*20,-Math.PI/2,-Math.PI/2+Math.PI*2*charge); ctx.stroke();
@@ -696,7 +695,7 @@ function drawMonster(m) {
   if (m.meleeHits>0) {
     const startX=sx-((m.meleeHits-1)*8)/2;
     for (let i=0;i<m.meleeHits;i++) {
-      ctx.fillStyle=i===m.meleeHits-1?'#ff69b4':'#ff69b4';
+      ctx.fillStyle='#ff69b4';
       ctx.beginPath(); ctx.arc(startX+i*8,sy+m.size+10,3.5,0,Math.PI*2); ctx.fill();
     }
   }
@@ -787,7 +786,7 @@ function drawProjectile(proj) {
       const t=proj.trail[i];
       const [tx,ty]=worldToScreen(t.x,t.y);
       ctx.globalAlpha=(i/proj.trail.length)*0.5;
-      ctx.fillStyle=proj.charge>=1?'#ff69b4':'#ff69b4';
+      ctx.fillStyle='#ff69b4';
       ctx.beginPath(); ctx.arc(tx,ty,(proj.size||8)*(i/proj.trail.length)*0.35,0,Math.PI*2); ctx.fill();
     }
     ctx.globalAlpha=1;
@@ -898,7 +897,7 @@ function explodeMonster(m) {
     for (let i=0;i<cnt;i++) {
       const angle=(Math.PI*2*i)/cnt+ring*0.3, spd=baseSpd+Math.random()*6;
       particles.push({x:m.x,y:m.y,vx:Math.cos(angle)*spd,vy:Math.sin(angle)*spd,
-        color:ring===0?'#ff69b4':'#ff69b4',life:80+ring*20,maxLife:80+ring*20,size:14+Math.random()*12,heart:true});
+        color:'#ff69b4',life:80+ring*20,maxLife:80+ring*20,size:14+Math.random()*12,heart:true});
     }
   }
   showFloatingText(m.x,m.y-m.size-10,CONFIG.messages.boom,'#ff69b4');
@@ -971,7 +970,7 @@ function updateProjectiles() {
     if (p.trail) { p.trail.push({x:p.x,y:p.y}); if (p.trail.length>12) p.trail.shift(); }
     p.x+=p.vx; p.y+=p.vy; p.spin=(p.spin||0)+0.18; p.life--;
     if (p.life<=0||!isWalkable(p.x,p.y,4)) {
-      spawnParticles(p.x,p.y,p.charge>=1?'#ff69b4':'#ff69b4',8,4);
+      spawnParticles(p.x,p.y,'#ff69b4',8,4);
       if (p.owner==='player'&&p.type==='heart') heartImpactExplosion(p.x,p.y,p.damage);
       projectiles.splice(i,1); continue;
     }
@@ -1195,8 +1194,8 @@ function drawOverlay(title, sub, btnText, btnId) {
   const leaderboardBlock = btnId === 'winBtn' ? `<div id="leaderboardList" class="leaderboard"></div>` : '';
   const winButtons = `<button id="${btnId}" style="${overlayBtnStyle}">${btnText}</button>`;
   ov.innerHTML=`<h1>${title}</h1><div class="subtitle">${sub}</div>${scoreLine}${leaderboardBlock}${winButtons}`;
-  if (btnId === 'winBtn') fetchLeaderboard();
   if (btnId === 'winBtn') {
+    fetchLeaderboard();
     ensureWinFloatersCanvas();
     winFloaters = [];
   }
@@ -1234,34 +1233,6 @@ function escapeHtml(s) {
   const div = document.createElement('div');
   div.textContent = s;
   return div.innerHTML;
-}
-
-async function saveScore() {
-  const btn = document.getElementById('saveScoreBtn');
-  const orig = btn ? btn.textContent : '';
-  if (btn) btn.textContent = '...';
-  const name = prompt(CONFIG.cutscene.saveScorePrompt, 'Anonymous');
-  if (btn) btn.textContent = orig;
-  if (name === null) return;
-  try {
-    const res = await fetch('/api/scores', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: (name || 'Anonymous').trim().slice(0, 32), score })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed');
-    if (btn) {
-      btn.textContent = CONFIG.cutscene.savedFeedback;
-      setTimeout(() => { btn.textContent = CONFIG.cutscene.saveScore; }, 2000);
-    }
-    fetchLeaderboard();
-  } catch {
-    if (btn) {
-      btn.textContent = CONFIG.cutscene.saveFailedFeedback;
-      setTimeout(() => { btn.textContent = CONFIG.cutscene.saveScore; }, 2000);
-    }
-  }
 }
 
 let winFloatersCanvas = null;

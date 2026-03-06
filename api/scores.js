@@ -3,11 +3,12 @@ import { kv } from '@vercel/kv';
 const KEY = 'sidequest:scores';
 const TOP_N = 10;
 const NAME_MAX_LEN = 32;
+const DEFAULT_NAME = 'Anonymous';
 
 function sanitizeName(name) {
-  if (typeof name !== 'string') return 'Anonymous';
+  if (typeof name !== 'string') return DEFAULT_NAME;
   const t = name.trim().slice(0, NAME_MAX_LEN);
-  return t || 'Anonymous';
+  return t || DEFAULT_NAME;
 }
 
 export default async function handler(req, res) {
