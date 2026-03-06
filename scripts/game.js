@@ -112,9 +112,8 @@ if (window.visualViewport) {
 }
 
 // ─── Init text from config ────────────────────────────────────────────────────
-function zoneDisplayName(name) {
-  return (name || '').replace(/\u{1F4CD}/gu, '').trim();
-}
+import { zoneDisplayName, mixHex } from './game-utils.js';
+
 function initTextFromConfig() {
   document.title = CONFIG.title;
   document.getElementById('healthLabel').textContent = CONFIG.hud.health;
@@ -575,12 +574,6 @@ const tileColors = {
   [T.ROAD]:  ['#1a1a1a','#2d2d2d'], [T.WALL]:  ['#1a0028','#150020'],
   [T.PARK]:  ['#0f2010','#0c1a0c'], [T.CASTLE]:['#2a1a3a','#1e1228'],
 };
-function mixHex(hex1, hex2, t) {
-  const parse = (h) => ({ r: parseInt(h.slice(1,3),16), g: parseInt(h.slice(3,5),16), b: parseInt(h.slice(5,7),16) });
-  const a = parse(hex1), b = parse(hex2);
-  const r = Math.round(a.r*(1-t)+b.r*t), g = Math.round(a.g*(1-t)+b.g*t), b_ = Math.round(a.b*(1-t)+b.b*t);
-  return '#'+[r,g,b_].map(x=>Math.max(0,Math.min(255,x)).toString(16).padStart(2,'0')).join('');
-}
 function drawTile(r, c) {
   const t = tilemap[r][c];
   if (t === T.WALL) return; // walls drawn as irregular blocks in render()

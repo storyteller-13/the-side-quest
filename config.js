@@ -1,7 +1,7 @@
 /**
  * Game configuration: all user-facing text and content data.
  */
-window.CONFIG = {
+const CONFIG = {
   // Page & overlay
   title: 'the side quest',
   overlayTitle: 'THE SIDE QUEST',
@@ -97,3 +97,5 @@ window.CONFIG = {
     { name: 'skeleton', color: '#5c5044', eyeColor: '#8b0000', hp: 40,  speed: 1.3, damage: 10, size: 15, loot: 60  }
   ]
 };
+if (typeof window !== 'undefined') window.CONFIG = CONFIG;
+export default CONFIG;

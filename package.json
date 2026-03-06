@@ -4,13 +4,21 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "deploy": "vercel"
+    "deploy": "vercel",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "prepare": "husky"
   },
   "dependencies": {
     "@vercel/kv": "^3.0.0",
     "redis": "^4.7.1"
   },
   "devDependencies": {
-    "vercel": "^39.0.0"
+    "@vitest/coverage-v8": "^2.1.0",
+    "husky": "^9.1.7",
+    "jsdom": "^25.0.0",
+    "vercel": "^39.0.0",
+    "vitest": "^2.1.0"
   }
 }
