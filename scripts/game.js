@@ -348,10 +348,22 @@ function spawnMonsters(zoneIdx) {
   const MONSTER_TYPES = CONFIG.monsterTypes;
   const count = ZONES[zoneIdx].monsterCount;
   const spd   = ZONES[zoneIdx].monsterSpeed;
+  // Only spawn on walkable cells reachable from the player (same path network — never stuck)
+  const walkable = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS && tilemap[r][c] !== T.WALL;
+  const playerRow = 9, playerCol = 3;
+  const reached = Array(ROWS).fill(0).map(() => Array(COLS).fill(false));
+  const q = [[playerRow, playerCol]];
+  reached[playerRow][playerCol] = true;
+  while (q.length) {
+    const [r, c] = q.shift();
+    for (const [dr, dc] of [[0,1],[0,-1],[1,0],[-1,0]]) {
+      const rr = r + dr, cc = c + dc;
+      if (walkable(rr, cc) && !reached[rr][cc]) { reached[rr][cc] = true; q.push([rr, cc]); }
+    }
+  }
   const roadCells = [];
-  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) {
-    const t = tilemap[r][c];
-    if ((t === T.ROAD || t === T.PARK || t === T.GRASS) && c > 5) roadCells.push([r,c]);
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    if (reached[r][c] && c > 5) roadCells.push([r, c]);
   }
   if (roadCells.length === 0) return;
   for (let i=0;i<count;i++) {
