@@ -58,7 +58,7 @@ window.CONFIG = {
   // Death overlay
   death: {
     title: 'YOU LOST THE PRINCE!',
-    subtitle: 'i know it\'s tiring, but do you want to try again?',
+    subtitle: 'i know it\'s tiring, but do you want to give it another try?',
     retry: 'RETRY'
   },
 
