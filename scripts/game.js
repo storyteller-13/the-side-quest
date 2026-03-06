@@ -573,19 +573,19 @@ function drawWallBlocks(sc, sr, ec, er) {
     ctx.fillRect(sx, sy, bw, bh);
     ctx.strokeStyle = '#2a1040'; ctx.lineWidth = 0.5;
     ctx.strokeRect(sx + 2, sy + 2, bw - 4, bh - 4);
-    if ((b.r * 7 + b.c * 13) % 17 === 0) {
+    if ((b.r * 7 + b.c * 13) % 17 < 3) {
       ctx.fillStyle = 'rgba(255,200,100,0.15)';
       ctx.fillRect(sx + 8, sy + 6, 6, 8); ctx.fillRect(sx + bw/2 - 3, sy + 6, 6, 8);
-      // Only draw emoji when block is big enough so it's never cut (min 2 tiles each side)
-      if (b.w >= 2 && b.h >= 2) {
-        const raw = CONFIG.zones[zone].mapEmoji || '🧱';
-        const emoji = Array.isArray(raw) ? raw[(b.r * 11 + b.c * 19) % raw.length] : raw;
-        const emojiSize = Math.floor(Math.min(bw, bh) * 0.5);
-        ctx.font = emojiSize + 'px sans-serif';
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillStyle = 'rgba(255,255,255,0.9)';
-        ctx.fillText(emoji, sx + bw/2, sy + bh/2);
-      }
+      // Scale emoji to fit inside block so it's never cut (compound emojis can be ~2x wide)
+      const pad = 6;
+      const fit = Math.min(bw - pad, bh - pad);
+      const emojiSize = Math.max(4, Math.floor(fit * 0.4));
+      const raw = CONFIG.zones[zone].mapEmoji || '🧱';
+      const emoji = Array.isArray(raw) ? raw[(b.r * 11 + b.c * 19) % raw.length] : raw;
+      ctx.font = emojiSize + 'px sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.fillText(emoji, sx + bw/2, sy + bh/2);
     }
   }
 }
