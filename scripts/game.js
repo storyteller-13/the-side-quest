@@ -147,6 +147,8 @@ let winFloaters = [];
 // ─── Input ───────────────────────────────────────────────────────────────────
 const keys = {};
 const mouse = { x: 0, y: 0, left: false, right: false };
+const CHEAT_FINAL = 'PRINCE';
+let cheatBuffer = '';
 document.addEventListener('keydown', e => {
   if (e.code === 'Escape' && state === 'playing') {
     paused = !paused;
@@ -154,6 +156,14 @@ document.addEventListener('keydown', e => {
     if (btn) btn.textContent = paused ? CONFIG.buttons.resume : CONFIG.buttons.pause;
     e.preventDefault();
     return;
+  }
+  if (state === 'playing' && e.key && e.key.length === 1 && /[A-Za-z]/.test(e.key)) {
+    cheatBuffer = (cheatBuffer + e.key.toUpperCase()).slice(-CHEAT_FINAL.length);
+    if (cheatBuffer === CHEAT_FINAL) {
+      zone = CONFIG.zones.length - 1;
+      initZone(zone);
+      cheatBuffer = '';
+    }
   }
   keys[e.code] = true;
   e.preventDefault();
