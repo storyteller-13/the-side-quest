@@ -1,7 +1,7 @@
 // ─── Constants ───────────────────────────────────────────────────────────────
 let W = window.innerWidth, H = window.innerHeight;
 const TILE = 32;
-const COLS = 50, ROWS = 35;
+const COLS = 100, ROWS = 70;
 const T = { ROAD: 0, WALL: 1, GRASS: 2, PARK: 3, ROSE: 4, HEART_TILE: 5, CASTLE: 6 };
 
 // ─── Audio ───────────────────────────────────────────────────────────────────
@@ -201,10 +201,10 @@ function generateMap() {
   const dirs = [[0,1],[0,-1],[1,0],[-1,0]]; // E,W,S,N (indices 0,1,2,3)
   const eastBias = [0,0,0,0,0,0, 2,2, 3];   // bias E (toward castle), some S/N, no W
 
-  for (let worm = 0; worm < 6; worm++) {
+  for (let worm = 0; worm < 8; worm++) {
     let r = 4 + Math.floor(Math.random() * (ROWS - 10));
-    let c = 2 + Math.floor(Math.random() * 8);
-    const steps = 120 + Math.floor(Math.random() * 100);
+    let c = 2 + Math.floor(Math.random() * 12);
+    const steps = 280 + Math.floor(Math.random() * 180);
     for (let s = 0; s < steps; s++) {
       const width = Math.random() < 0.4 ? 1 : (Math.random() < 0.6 ? 2 : 3);
       carve(r, c, width);
@@ -220,16 +220,19 @@ function generateMap() {
     if (rr >= 0 && rr < ROWS && cc >= 0 && cc < COLS) tilemap[rr][cc] = T.ROAD;
   }
 
-  // Castle and road to castle
-  for (let r = 12; r < 22; r++) for (let c = 42; c < 49; c++) tilemap[r][c] = T.CASTLE;
-  for (let c = 37; c < 49; c++) { tilemap[16][c] = T.ROAD; tilemap[17][c] = T.ROAD; tilemap[18][c] = T.ROAD; }
+  // Castle and road to castle (right side of map)
+  const castleColStart = COLS - 8, castleColEnd = COLS;
+  const castleRowStart = 12, castleRowEnd = 22;
+  const roadToCastleCol = COLS - 15;
+  for (let r = castleRowStart; r < castleRowEnd; r++) for (let c = castleColStart; c < castleColEnd; c++) tilemap[r][c] = T.CASTLE;
+  for (let c = roadToCastleCol; c < castleColEnd; c++) { tilemap[16][c] = T.ROAD; tilemap[17][c] = T.ROAD; tilemap[18][c] = T.ROAD; }
 
-  // Connect left side to right: carve a few horizontal meanders so paths reach castle
-  for (let band = 0; band < 4; band++) {
-    const row = 6 + band * 8 + Math.floor(Math.random() * 5);
+  // Connect left side to right: carve horizontal meanders so paths reach castle
+  for (let band = 0; band < 6; band++) {
+    const row = 6 + band * 12 + Math.floor(Math.random() * 8);
     if (row >= ROWS - 1) continue;
-    const len = 15 + Math.floor(Math.random() * 20);
-    let c = 5 + Math.floor(Math.random() * 10);
+    const len = 50 + Math.floor(Math.random() * 40);
+    let c = 5 + Math.floor(Math.random() * 15);
     for (let i = 0; i < len && c < COLS - 2; i++) {
       const w = Math.random() < 0.5 ? 1 : 2;
       carve(row, c, w);
@@ -244,6 +247,35 @@ function generateMap() {
       const rnd = Math.random();
       if (rnd < 0.05) tilemap[r][c] = T.PARK;
       else if (rnd < 0.08) tilemap[r][c] = T.ROSE;
+    }
+  }
+
+  // Guarantee path from player (9,3) to prince/castle: flood-fill then carve if disconnected
+  const walkable = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS && tilemap[r][c] !== T.WALL;
+  const playerRow = 9, playerCol = 3;
+  const castleEntranceRow = 17, castleEntranceCol = roadToCastleCol;
+  const reached = Array(ROWS).fill(0).map(() => Array(COLS).fill(false));
+  const q = [[playerRow, playerCol]];
+  reached[playerRow][playerCol] = true;
+  while (q.length) {
+    const [r, c] = q.shift();
+    for (const [dr, dc] of [[0,1],[0,-1],[1,0],[-1,0]]) {
+      const rr = r + dr, cc = c + dc;
+      if (walkable(rr, cc) && !reached[rr][cc]) { reached[rr][cc] = true; q.push([rr, cc]); }
+    }
+  }
+  const princeReachable = reached[castleEntranceRow][castleEntranceCol];
+  if (!princeReachable) {
+    // Carve an L-shaped path: (playerRow, playerCol) -> (playerRow, castleEntranceCol) -> (castleEntranceRow, castleEntranceCol)
+    const cMin = Math.min(playerCol, castleEntranceCol), cMax = Math.max(playerCol, castleEntranceCol);
+    const rMin = Math.min(playerRow, castleEntranceRow), rMax = Math.max(playerRow, castleEntranceRow);
+    for (let c = cMin; c <= cMax; c++) {
+      tilemap[playerRow][c] = T.ROAD;
+      if (playerRow + 1 < ROWS) tilemap[playerRow + 1][c] = T.ROAD;
+    }
+    for (let r = rMin; r <= rMax; r++) {
+      tilemap[r][castleEntranceCol] = T.ROAD;
+      if (castleEntranceCol + 1 < COLS) tilemap[r][castleEntranceCol + 1] = T.ROAD;
     }
   }
 
@@ -340,7 +372,7 @@ function spawnMonsters(zoneIdx) {
 
 function spawnPrince() {
   prince = {
-    x: 42*TILE, y: 17*TILE, size:18, bobTimer:0, reached:false,
+    x: (COLS - 4)*TILE, y: 17*TILE, size:18, bobTimer:0, reached:false,
     fleeing:false, fleeVx:0, fleeVy:0,
     speech:'', speechTimer:0,
     tauntTimer: 300 + Math.random()*200,
@@ -418,7 +450,7 @@ function drawTile(r, c) {
   } else if (t===T.CASTLE) {
     ctx.strokeStyle='#c084fc'; ctx.lineWidth=0.5; ctx.strokeRect(sx+1,sy+1,TILE-2,TILE-2);
     if (r%2===0&&c%2===0) { ctx.fillStyle='rgba(192,132,252,0.1)'; ctx.fillRect(sx+4,sy+4,TILE-8,TILE-8); }
-    if (r===12&&c>=42) { ctx.fillStyle='#c084fc'; for (let i=0;i<3;i++) ctx.fillRect(sx+2+i*10,sy,6,8); }
+    if (r===12&&c>=COLS-8) { ctx.fillStyle='#c084fc'; for (let i=0;i<3;i++) ctx.fillRect(sx+2+i*10,sy,6,8); }
   }
 }
 
@@ -438,11 +470,15 @@ function drawWallBlocks(sc, sr, ec, er) {
     if ((b.r * 7 + b.c * 13) % 17 === 0) {
       ctx.fillStyle = 'rgba(255,200,100,0.15)';
       ctx.fillRect(sx + 8, sy + 6, 6, 8); ctx.fillRect(sx + bw/2 - 3, sy + 6, 6, 8);
-      const emoji = CONFIG.zones[zone].mapEmoji || '🧱';
-      ctx.font = Math.round(Math.min(bw, bh) * 0.6) + 'px sans-serif';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.fillText(emoji, sx + bw/2, sy + bh/2);
+      // Only draw emoji when block is big enough so it's never cut (min 2 tiles each side)
+      if (b.w >= 2 && b.h >= 2) {
+        const emoji = CONFIG.zones[zone].mapEmoji || '🧱';
+        const emojiSize = Math.floor(Math.min(bw, bh) * 0.5);
+        ctx.font = emojiSize + 'px sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.fillText(emoji, sx + bw/2, sy + bh/2);
+      }
     }
   }
 }
@@ -959,17 +995,22 @@ function render() {
   drawPlayer(player);
   if (state === 'winScreen') {
     const [sx, sy] = worldToScreen(player.x, player.y);
-    ctx.font = '28px monospace';
+    const emojiSize = 28;
+    const halfH = emojiSize / 2;
+    const y = Math.max(halfH + 4, Math.min(H - halfH - 4, sy - 24));
+    ctx.font = emojiSize + 'px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('💀', sx, sy - 24);
+    ctx.fillText('💀', sx, y);
   }
   for (const proj of projectiles) drawProjectile(proj);
   for (const p of particles) drawParticle(p);
   for (const ft of floatingTexts) {
     const [ftx,fty]=worldToScreen(ft.x,ft.y);
+    const pad = 20;
+    if (ftx < pad || ftx > W - pad || fty < pad || fty > H - pad) continue;
     ctx.globalAlpha=ft.life/ft.maxLife; ctx.fillStyle=ft.color;
-    ctx.font='bold 14px monospace'; ctx.textAlign='center';
+    ctx.font='bold 14px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(ft.text,ftx,fty); ctx.globalAlpha=1;
   }
   const vg=ctx.createRadialGradient(W/2,H/2,H*0.3,W/2,H/2,H*0.8);
@@ -1096,17 +1137,20 @@ function updateAndDrawWinFloaters() {
   }
   for (let i = winFloaters.length - 1; i >= 0; i--) {
     winFloaters[i].y -= winFloaters[i].speed;
-    if (winFloaters[i].y < -40) winFloaters.splice(i, 1);
+    if (winFloaters[i].y < -winFloaters[i].size) winFloaters.splice(i, 1);
   }
   const fctx = winFloatersCanvas.getContext('2d');
   fctx.clearRect(0, 0, cw, ch);
-  fctx.font = '24px sans-serif';
   fctx.textAlign = 'center';
   fctx.textBaseline = 'middle';
+  const margin = 4;
   for (const f of winFloaters) {
+    const size = Math.round(f.size);
+    const half = size / 2;
+    if (f.y - half < -margin || f.y + half > ch + margin || f.x - half < -margin || f.x + half > cw + margin) continue;
     fctx.save();
     fctx.globalAlpha = f.opacity * Math.min(1, (ch - f.y) / 80);
-    fctx.font = `${Math.round(f.size)}px sans-serif`;
+    fctx.font = size + 'px sans-serif';
     if (f.char === '♥') {
       fctx.fillStyle = '#000';
       fctx.shadowColor = '#333';
@@ -1222,10 +1266,12 @@ function gameLoop() {
       ctx.fillStyle = '#fff';
       ctx.font = 'bold 28px monospace';
       ctx.fillText(msg, cx, bubbleY + bubbleH / 2);
-      // Superman emoji (large, below balloon — he's "talking")
-      ctx.font = '120px sans-serif';
+      // Superman emoji (large, below balloon — keep fully on screen)
+      const emojiSize = 120;
+      const emojiY = Math.max(emojiSize / 2 + 8, Math.min(H - emojiSize / 2 - 8, cy + 20));
+      ctx.font = emojiSize + 'px sans-serif';
       ctx.textBaseline = 'middle';
-      ctx.fillText('🦸🏻‍♂️', cx, cy + 20);
+      ctx.fillText('🦸🏻‍♂️', cx, emojiY);
       ctx.restore();
     }
     if (paused) {
