@@ -58,7 +58,7 @@ canvas { display: block; }
 }
 .menu-frame h1 {
   white-space: nowrap;
-  font-size: clamp(42px, 10vw, 96px);
+  font-size: clamp(32px, 6vw, 64px);
 }
 .menu-frame .subtitle,
 .menu-frame .controls,
