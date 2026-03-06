@@ -1,7 +1,7 @@
 // ─── Constants ───────────────────────────────────────────────────────────────
 let W = window.innerWidth, H = window.innerHeight;
 const TILE = 32;
-const COLS = 100, ROWS = 70;
+const COLS = 200, ROWS = 140;
 const T = { ROAD: 0, WALL: 1, GRASS: 2, PARK: 3, ROSE: 4, HEART_TILE: 5, CASTLE: 6 };
 
 // ─── Audio ───────────────────────────────────────────────────────────────────
@@ -201,10 +201,10 @@ function generateMap() {
   const dirs = [[0,1],[0,-1],[1,0],[-1,0]]; // E,W,S,N (indices 0,1,2,3)
   const eastBias = [0,0,0,0,0,0, 2,2, 3];   // bias E (toward castle), some S/N, no W
 
-  for (let worm = 0; worm < 8; worm++) {
+  for (let worm = 0; worm < 12; worm++) {
     let r = 4 + Math.floor(Math.random() * (ROWS - 10));
-    let c = 2 + Math.floor(Math.random() * 12);
-    const steps = 280 + Math.floor(Math.random() * 180);
+    let c = 2 + Math.floor(Math.random() * 20);
+    const steps = 560 + Math.floor(Math.random() * 360);
     for (let s = 0; s < steps; s++) {
       const width = Math.random() < 0.4 ? 1 : (Math.random() < 0.6 ? 2 : 3);
       carve(r, c, width);
@@ -228,11 +228,11 @@ function generateMap() {
   for (let c = roadToCastleCol; c < castleColEnd; c++) { tilemap[16][c] = T.ROAD; tilemap[17][c] = T.ROAD; tilemap[18][c] = T.ROAD; }
 
   // Connect left side to right: carve horizontal meanders so paths reach castle
-  for (let band = 0; band < 6; band++) {
-    const row = 6 + band * 12 + Math.floor(Math.random() * 8);
+  for (let band = 0; band < 10; band++) {
+    const row = 6 + band * 14 + Math.floor(Math.random() * 10);
     if (row >= ROWS - 1) continue;
-    const len = 50 + Math.floor(Math.random() * 40);
-    let c = 5 + Math.floor(Math.random() * 15);
+    const len = 100 + Math.floor(Math.random() * 80);
+    let c = 5 + Math.floor(Math.random() * 25);
     for (let i = 0; i < len && c < COLS - 2; i++) {
       const w = Math.random() < 0.5 ? 1 : 2;
       carve(row, c, w);
