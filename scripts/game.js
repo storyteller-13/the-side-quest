@@ -1,7 +1,7 @@
 // ─── Constants ───────────────────────────────────────────────────────────────
 let W = window.innerWidth, H = window.innerHeight;
 const TILE = 32;
-const COLS = 200, ROWS = 140;
+const COLS = 160, ROWS = 112;
 const T = { ROAD: 0, WALL: 1, GRASS: 2, PARK: 3, ROSE: 4, HEART_TILE: 5, CASTLE: 6 };
 
 // ─── Audio ───────────────────────────────────────────────────────────────────
@@ -201,10 +201,10 @@ function generateMap() {
   const dirs = [[0,1],[0,-1],[1,0],[-1,0]]; // E,W,S,N (indices 0,1,2,3)
   const eastBias = [0,0,0,0, 2,2,2, 3,3,3]; // E 40%, S 30%, N 30% — meander, never straight
 
-  for (let worm = 0; worm < 12; worm++) {
+  for (let worm = 0; worm < 10; worm++) {
     let r = 4 + Math.floor(Math.random() * (ROWS - 10));
-    let c = 2 + Math.floor(Math.random() * 20);
-    const steps = 560 + Math.floor(Math.random() * 360);
+    let c = 2 + Math.floor(Math.random() * 16);
+    const steps = 420 + Math.floor(Math.random() * 280);
     let stepsSinceTurn = 0;
     for (let s = 0; s < steps; s++) {
       const width = Math.random() < 0.4 ? 1 : (Math.random() < 0.6 ? 2 : 3);
@@ -235,11 +235,11 @@ function generateMap() {
   for (let c = roadToCastleCol; c < castleColEnd; c++) { tilemap[16][c] = T.ROAD; tilemap[17][c] = T.ROAD; tilemap[18][c] = T.ROAD; }
 
   // Connect left to right with snaking bands (never straight: jog row every 8–15 steps)
-  for (let band = 0; band < 10; band++) {
-    let row = 6 + band * 14 + Math.floor(Math.random() * 10);
+  for (let band = 0; band < 8; band++) {
+    let row = 6 + band * 12 + Math.floor(Math.random() * 8);
     if (row >= ROWS - 2) continue;
-    const len = 100 + Math.floor(Math.random() * 80);
-    let c = 5 + Math.floor(Math.random() * 25);
+    const len = 80 + Math.floor(Math.random() * 60);
+    let c = 5 + Math.floor(Math.random() * 20);
     let stepsSinceJog = 0;
     for (let i = 0; i < len && c < COLS - 2; i++) {
       const w = Math.random() < 0.5 ? 1 : 2;
@@ -264,7 +264,7 @@ function generateMap() {
     }
   }
 
-  // Guarantee path from player (9,3) to prince/castle: flood-fill then carve if disconnected
+  // Guarantee path from player (9,3) to castle (right side): flood-fill then carve if disconnected
   const walkable = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS && tilemap[r][c] !== T.WALL;
   const playerRow = 9, playerCol = 3;
   const castleEntranceRow = 17, castleEntranceCol = roadToCastleCol;
@@ -415,46 +415,16 @@ function spawnMonsters(zoneIdx) {
 }
 
 function spawnPrince() {
-  // Prince always on left or bottom of map, in a reachable spot (different each level)
-  const playerRow = 9, playerCol = 3;
-  const walkable = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS && tilemap[r][c] !== T.WALL;
-  const reached = Array(ROWS).fill(0).map(() => Array(COLS).fill(false));
-  const q = [[playerRow, playerCol]];
-  reached[playerRow][playerCol] = true;
-  while (q.length) {
-    const [r, c] = q.shift();
-    for (const [dr, dc] of [[0,1],[0,-1],[1,0],[-1,0]]) {
-      const rr = r + dr, cc = c + dc;
-      if (walkable(rr, cc) && !reached[rr][cc]) { reached[rr][cc] = true; q.push([rr, cc]); }
-    }
-  }
-  const minDistFromPlayer = 12;
-  const leftCells = [], bottomCells = [];
-  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
-    if (!reached[r][c]) continue;
-    const dist = Math.abs(r - playerRow) + Math.abs(c - playerCol);
-    if (dist < minDistFromPlayer) continue;
-    if (c < COLS / 4) leftCells.push([r, c]);
-    if (r >= ROWS * 3 / 4) bottomCells.push([r, c]);
-  }
-  const useLeft = Math.random() < 0.5;
-  let candidates = useLeft ? leftCells : bottomCells;
-  if (candidates.length === 0) candidates = useLeft ? bottomCells : leftCells;
-  if (candidates.length === 0) {
-    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++)
-      if (reached[r][c] && Math.abs(r - playerRow) + Math.abs(c - playerCol) >= minDistFromPlayer) candidates.push([r, c]);
-  }
-  if (candidates.length === 0) {
-    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++)
-      if (reached[r][c]) candidates.push([r, c]);
-  }
-  const cell = candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : [playerRow, playerCol + 15];
-  const px = cell[1] * TILE + TILE / 2, py = cell[0] * TILE + TILE / 2;
+  // Prince always in his castle on the right edge of the map
+  const castleCenterCol = COLS - 4;
+  const castleCenterRow = 17;
   prince = {
-    x: px, y: py, size:18, bobTimer:0, reached:false,
-    fleeing:false, fleeVx:0, fleeVy:0,
-    speech:'', speechTimer:0,
-    tauntTimer: 300 + Math.random()*200,
+    x: castleCenterCol * TILE,
+    y: castleCenterRow * TILE,
+    size: 18, bobTimer: 0, reached: false,
+    fleeing: false, fleeVx: 0, fleeVy: 0,
+    speech: '', speechTimer: 0,
+    tauntTimer: 300 + Math.random() * 200,
   };
 }
 
