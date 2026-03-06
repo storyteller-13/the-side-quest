@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>The Side Quest</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%239333ea' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="styles/style.css">
+<link rel="stylesheet" href="styles/global.css">
 </head>
 <body>
 <div id="gameContainer">
@@ -15,13 +15,14 @@
     <div id="hud">
       <div class="hud-left">
         <div class="hud-label" id="healthLabel"></div>
-        <div id="healthBar"><div id="healthFill" style="width:100%"></div></div>
-        <div class="hud-label" id="loveLabel" style="margin-top:2px"></div>
+        <div id="healthBar"><div id="healthFill"></div></div>
+        <div class="hud-label" id="loveLabel"></div>
         <div id="loveBar"><div id="loveFill"></div></div>
-        <div class="hud-label" id="ammoLabel" style="margin-top:2px"></div>
+        <div class="hud-label" id="ammoLabel"></div>
         <div id="ammoDisplay"></div>
       </div>
       <div class="hud-right">
+        <button type="button" id="boomBtn" aria-label="Boom attack">BOOM</button>
         <button id="pauseBtn"></button>
         <div id="scoreDisplay"></div>
         <div id="levelDisplay"></div>
