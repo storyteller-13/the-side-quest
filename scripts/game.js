@@ -1209,15 +1209,6 @@ function drawOverlay(title, sub, btnText, btnId) {
     ensureWinFloatersCanvas();
     winFloaters = [];
   }
-  if (btnId === 'winBtn' && CONFIG.cutscene.winMusicVideoId && !ov.querySelector('iframe')) {
-    const iframe = document.createElement('iframe');
-    iframe.setAttribute('src', `https://www.youtube.com/embed/${CONFIG.cutscene.winMusicVideoId}?autoplay=1`);
-    iframe.setAttribute('frameborder', '0');
-    iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
-    iframe.setAttribute('allowfullscreen', '');
-    iframe.style.cssText = 'position:absolute;bottom:24px;left:50%;transform:translateX(-50%);width:320px;height:180px;border-radius:4px;pointer-events:auto;';
-    ov.appendChild(iframe);
-  }
   ov.style.display='flex';
 }
 
