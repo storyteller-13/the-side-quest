@@ -1023,7 +1023,7 @@ function drawMinimap() {
     mctx.fillStyle=t===T.ROAD?'#2d2d2d':t===T.CASTLE?'#c084fc':'#150020';
     mctx.fillRect(c*sx*TILE,r*sy*TILE,sx*TILE+1,sy*TILE+1);
   }
-  if (prince) { mctx.fillStyle='#ff69b4'; mctx.beginPath(); mctx.arc(prince.x*sx,prince.y*sy,3,0,Math.PI*2); mctx.fill(); }
+  if (prince) { mctx.fillStyle='#4488ff'; mctx.beginPath(); mctx.arc(prince.x*sx,prince.y*sy,3,0,Math.PI*2); mctx.fill(); }
   mctx.fillStyle='#ff4444';
   for (const m of monsters) if (!m.dead) { mctx.beginPath(); mctx.arc(m.x*sx,m.y*sy,2,0,Math.PI*2); mctx.fill(); }
   mctx.fillStyle='#ff69b4'; mctx.beginPath(); mctx.arc(player.x*sx,player.y*sy,3,0,Math.PI*2); mctx.fill();
