@@ -444,7 +444,11 @@ function spawnPrince() {
     for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++)
       if (reached[r][c] && Math.abs(r - playerRow) + Math.abs(c - playerCol) >= minDistFromPlayer) candidates.push([r, c]);
   }
-  const cell = candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : [17, Math.floor(COLS/4)];
+  if (candidates.length === 0) {
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++)
+      if (reached[r][c]) candidates.push([r, c]);
+  }
+  const cell = candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : [playerRow, playerCol + 15];
   const px = cell[1] * TILE + TILE / 2, py = cell[0] * TILE + TILE / 2;
   prince = {
     x: px, y: py, size:18, bobTimer:0, reached:false,
@@ -1023,10 +1027,26 @@ function drawMinimap() {
     mctx.fillStyle=t===T.ROAD?'#2d2d2d':t===T.CASTLE?'#c084fc':'#150020';
     mctx.fillRect(c*sx*TILE,r*sy*TILE,sx*TILE+1,sy*TILE+1);
   }
-  if (prince) { mctx.fillStyle='#4488ff'; mctx.beginPath(); mctx.arc(prince.x*sx,prince.y*sy,3,0,Math.PI*2); mctx.fill(); }
   mctx.fillStyle='#ff4444';
   for (const m of monsters) if (!m.dead) { mctx.beginPath(); mctx.arc(m.x*sx,m.y*sy,2,0,Math.PI*2); mctx.fill(); }
-  mctx.fillStyle='#ff69b4'; mctx.beginPath(); mctx.arc(player.x*sx,player.y*sy,3,0,Math.PI*2); mctx.fill();
+  if (prince) {
+    const pulse = 0.75 + 0.25 * (1 + Math.sin(frameCount * 0.12));
+    const px = prince.x * sx, py = prince.y * sy;
+    const outer = 3.5 * pulse, inner = 1.5 * pulse;
+    mctx.fillStyle = '#4488ff';
+    mctx.globalAlpha = 0.7 + 0.3 * (1 + Math.sin(frameCount * 0.1)) / 2;
+    mctx.beginPath();
+    for (let i = 0; i < 4; i++) {
+      const a1 = (i * 2) * Math.PI / 4 - Math.PI / 2;
+      const a2 = (i * 2 + 1) * Math.PI / 4 - Math.PI / 2;
+      if (i === 0) mctx.moveTo(px + outer * Math.cos(a1), py + outer * Math.sin(a1));
+      else mctx.lineTo(px + outer * Math.cos(a1), py + outer * Math.sin(a1));
+      mctx.lineTo(px + inner * Math.cos(a2), py + inner * Math.sin(a2));
+    }
+    mctx.closePath();
+    mctx.fill();
+    mctx.globalAlpha = 1;
+  }
   mctx.strokeStyle='rgba(255,255,255,0.3)'; mctx.lineWidth=0.5;
   mctx.strokeRect(camera.x*sx,camera.y*sy,W*sx,H*sy);
 }
