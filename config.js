@@ -63,27 +63,27 @@ window.CONFIG = {
     retry: 'RETRY'
   },
 
-  // Zones (name, bg, mapEmoji, monsterCount, monsterSpeed, fleeSpeed, excuse, taunts)
+  // Zones (name, bg, mapEmoji [array of 3], monsterCount, monsterSpeed, fleeSpeed, excuse, taunts)
   zones: [
-    { name: 'THE DARK STREETS IN BERLIN',   bg: '#1a0028', mapEmoji: '🧛🏼', monsterCount: 32, monsterSpeed: 1.0, fleeSpeed: 6,
+    { name: 'THE DARK STREETS IN BERLIN',   bg: '#1a0028', mapEmoji: ['🇩🇪', '🌭', '🧛🏼'], monsterCount: 32, monsterSpeed: 1.0, fleeSpeed: 6,
       excuse: "I'M NOT READY!",
       taunts: ["YOU'LL NEVER CATCH ME!"] },
-    { name: 'THE HAUNTED CAVE IN OAHU',    bg: '#001a0a', mapEmoji: '🐉', monsterCount: 52, monsterSpeed: 1.2, fleeSpeed: 8,
+    { name: 'THE HAUNTED CAVE IN OAHU',    bg: '#001a0a', mapEmoji: ['🌺', '🐡', '🐉'], monsterCount: 52, monsterSpeed: 1.2, fleeSpeed: 8,
       excuse: "I FORGOT SOMETHING!",
       taunts: ["SO MANY MONSTERS!"] },
-    { name: 'THE CURSED FOREST IN BRAZIL',  bg: '#0d1a00', mapEmoji: '🐅', monsterCount: 72, monsterSpeed: 1.4, fleeSpeed: 10,
+    { name: 'THE CURSED FOREST IN BRAZIL',  bg: '#0d1a00', mapEmoji: ['🍌', '🇧🇷', '🐅'], monsterCount: 72, monsterSpeed: 1.4, fleeSpeed: 10,
       excuse: "I LEFT THE OVEN ON!",
       taunts: ["I HAVE PLACES TO BE!"] },
-    { name: 'THE DEMON SWAMP IN NEW ORLEANS',    bg: '#001a14', mapEmoji: '👹', monsterCount: 88, monsterSpeed: 1.6, fleeSpeed: 12,
+    { name: 'THE DEMON SWAMP IN NEW ORLEANS',    bg: '#001a14', mapEmoji: ['🪦', '🕷️', '👹'], monsterCount: 88, monsterSpeed: 1.6, fleeSpeed: 12,
       excuse: "I NEED TO WASH MY HAIR!",
       taunts: ["SO CLOSE, YET SO FAR!"] },
-    { name: 'THE GHOST ISLAND IN MALAYSIA',     bg: '#1a0800', mapEmoji: '👻', monsterCount: 104, monsterSpeed: 1.8, fleeSpeed: 14,
+    { name: 'THE GHOST ISLAND IN MALAYSIA',     bg: '#1a0800', mapEmoji: ['🇲🇾', '🐍', '👻'], monsterCount: 104, monsterSpeed: 1.8, fleeSpeed: 14,
       excuse: "MY MOM IS CALLING!",
       taunts: ["I'M NOT READY FOR COMMITMENT!"] },
-    { name: 'THE FINAL FORTRESS IN DENVER', bg: '#08081a', mapEmoji: '👽', monsterCount: 120, monsterSpeed: 2.0, fleeSpeed: 16,
+    { name: 'THE FINAL FORTRESS IN DENVER', bg: '#08081a', mapEmoji: ['🏔️', '💍', '👽'], monsterCount: 120, monsterSpeed: 2.0, fleeSpeed: 16,
       excuse: "I AM SCARED!",
       taunts: ["MAYBE IN ANOTHER LIFE!"] },
-    { name: 'THE SECRET ROSE GARDEN',    bg: '#1a0512', mapEmoji: '🌹', monsterCount: 140, monsterSpeed: 2.2, fleeSpeed: 0,
+    { name: 'THE SECRET ROSE GARDEN',    bg: '#1a0512', mapEmoji: ['👩🏻‍❤️‍💋‍👨🏻', '🤖', '🌹'], monsterCount: 140, monsterSpeed: 2.2, fleeSpeed: 0,
       excuse: null,
       taunts: ["MAYBE I\'LL STAY..."] }
   ],

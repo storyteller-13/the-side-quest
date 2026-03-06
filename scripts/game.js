@@ -578,7 +578,8 @@ function drawWallBlocks(sc, sr, ec, er) {
       ctx.fillRect(sx + 8, sy + 6, 6, 8); ctx.fillRect(sx + bw/2 - 3, sy + 6, 6, 8);
       // Only draw emoji when block is big enough so it's never cut (min 2 tiles each side)
       if (b.w >= 2 && b.h >= 2) {
-        const emoji = CONFIG.zones[zone].mapEmoji || '🧱';
+        const raw = CONFIG.zones[zone].mapEmoji || '🧱';
+        const emoji = Array.isArray(raw) ? raw[(b.r * 11 + b.c * 19) % raw.length] : raw;
         const emojiSize = Math.floor(Math.min(bw, bh) * 0.5);
         ctx.font = emojiSize + 'px sans-serif';
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
