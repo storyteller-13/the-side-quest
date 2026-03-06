@@ -113,7 +113,7 @@ function initTextFromConfig() {
   document.getElementById('ammoDisplay').textContent = CONFIG.hud.ammoFormat.replace('%d', '5');
   document.getElementById('pauseBtn').textContent = CONFIG.buttons.pause;
   document.getElementById('scoreDisplay').textContent = '0';
-  document.getElementById('levelDisplay').textContent = CONFIG.zones[0].name + '  [1/' + CONFIG.zones.length + ']';
+  document.getElementById('levelDisplay').textContent = CONFIG.zones[0].name;
   document.getElementById('wantedStars').textContent = CONFIG.hud.wantedStar.repeat(5);
   document.getElementById('overlayTitle').textContent = CONFIG.overlayTitle;
   document.getElementById('overlaySubtitle').textContent = CONFIG.subtitle;
@@ -790,7 +790,7 @@ function updateHUD() {
   document.getElementById('loveFill').style.width=loveMeter+'%';
   document.getElementById('scoreDisplay').textContent=score.toString().padStart(6,'0');
   document.getElementById('ammoDisplay').textContent=CONFIG.hud.ammoFormat.replace('%d', player.ammo);
-  document.getElementById('levelDisplay').textContent=CONFIG.zones[zone].name+'  ['+(zone+1)+'/'+CONFIG.zones.length+']';
+  document.getElementById('levelDisplay').textContent=CONFIG.zones[zone].name;
   const alive=monsters.filter(m=>!m.dead).length;
   const pct=1-(alive/monsters.length);
   document.getElementById('wantedStars').textContent=CONFIG.hud.wantedStar.repeat(Math.min(Math.floor(pct*5)+1,5));
@@ -1031,7 +1031,7 @@ function gameLoop() {
         ctx.fillStyle='#ff69b4'; ctx.font='bold 28px monospace'; ctx.textAlign='center';
         ctx.shadowColor='#ff69b4'; ctx.shadowBlur=20;
         ctx.fillText(CONFIG.messages.ranAway, W/2, H/2-24);
-        ctx.fillStyle='#c084fc'; ctx.font='bold 14px monospace'; ctx.shadowColor='#c084fc';
+        ctx.fillStyle='#c084fc'; ctx.font='bold 32px monospace'; ctx.shadowColor='#c084fc';
         ctx.fillText(CONFIG.messages.entering.replace('%s', CONFIG.zones[Math.min(zone,CONFIG.zones.length-1)].name), W/2, H/2+18);
         ctx.shadowBlur=0;
       } else if (t<80) {
