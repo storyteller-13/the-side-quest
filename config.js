@@ -45,7 +45,7 @@ window.CONFIG = {
   // Cutscene
   cutscene: {
     finally: 'FINALLY...',
-    trueLove: 'YOU KISSED THE PRINCE! ♥',
+    trueLove: 'TRUE LOVE! ♥',
     winSubtitle: 'he finally didn\'t run away!<br>those 7 levels were worth it...',
     playAgain: 'PLAY AGAIN',
     leaderboardTitle: 'HIGH SCORES',
