@@ -308,7 +308,7 @@ function worldToScreen(wx, wy) {
 
 // ─── Tile Rendering ──────────────────────────────────────────────────────────
 const tileColors = {
-  [T.ROAD]:  ['#2d1b3d','#251530'], [T.WALL]:  ['#1a0028','#150020'],
+  [T.ROAD]:  ['#1a1a1a','#2d2d2d'], [T.WALL]:  ['#1a0028','#150020'],
   [T.GRASS]: ['#1a2e1a','#162614'], [T.PARK]:  ['#0f2010','#0c1a0c'],
   [T.ROSE]:  ['#2d0a1a','#200812'], [T.CASTLE]:['#2a1a3a','#1e1228'],
 };
@@ -324,7 +324,9 @@ function drawTile(r, c) {
   if (sx>W||sy>H||sx<-TILE||sy<-TILE) return;
   const zoneBg = CONFIG.zones[zone].bg;
   const baseColors = tileColors[t]||tileColors[T.WALL];
-  const colors = [mixHex(baseColors[0], zoneBg, 0.35), mixHex(baseColors[1], zoneBg, 0.35)];
+  const colors = (t === T.ROAD)
+    ? baseColors
+    : [mixHex(baseColors[0], zoneBg, 0.35), mixHex(baseColors[1], zoneBg, 0.35)];
   ctx.fillStyle = colors[(r+c)%2];
   ctx.fillRect(sx, sy, TILE, TILE);
   if (t===T.WALL) {
@@ -806,7 +808,7 @@ function drawMinimap() {
   mctx.fillStyle='#0a0010'; mctx.fillRect(0,0,mw,mh);
   for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) {
     const t=tilemap[r][c];
-    mctx.fillStyle=t===T.ROAD?'#2d1b3d':t===T.CASTLE?'#c084fc':'#150020';
+    mctx.fillStyle=t===T.ROAD?'#2d2d2d':t===T.CASTLE?'#c084fc':'#150020';
     mctx.fillRect(c*sx*TILE,r*sy*TILE,sx*TILE+1,sy*TILE+1);
   }
   if (prince) { mctx.fillStyle='#ff69b4'; mctx.beginPath(); mctx.arc(prince.x*sx,prince.y*sy,3,0,Math.PI*2); mctx.fill(); }
