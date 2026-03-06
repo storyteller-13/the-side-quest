@@ -40,25 +40,29 @@ canvas { display: block; }
   overflow-y: auto;
 }
 .menu-frame {
-  border: 1px solid #ff69b4;
-  border-radius: 0;
-  padding: 56px 56px 64px;
-  width: min(88vw, 720px);
-  max-width: min(88vw, 720px);
+  border: 1px solid #c084fc;
+  border-radius: 24px;
+  padding: 56px 64px 64px;
+  width: min(95vw, 960px);
+  max-width: min(95vw, 960px);
   box-shadow:
-    0 0 0 1px rgba(255,105,180,0.4),
-    0 0 24px rgba(255,105,180,0.5),
-    0 0 48px rgba(255,20,147,0.25),
-    inset 0 0 80px rgba(255,105,180,0.06);
-  background: rgba(20,0,30,0.4);
+    0 0 0 1px rgba(192,132,252,0.4),
+    0 0 24px rgba(192,132,252,0.5),
+    0 0 48px rgba(139,92,246,0.25),
+    inset 0 0 80px rgba(192,132,252,0.06);
+  background: rgba(30,0,50,0.4);
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
 }
+.menu-frame h1 {
+  white-space: nowrap;
+  font-size: clamp(42px, 10vw, 96px);
+}
 .menu-frame .subtitle,
 .menu-frame .controls,
-.menu-frame #startBtn { margin-left: 0; margin-right: 0; }
+.menu-frame #startBtn { margin-left: 0; margin-right: 0; max-width: 100%; overflow-wrap: break-word; }
 #overlay:has(.win-video-link) {
   padding-bottom: 100px;
 }
