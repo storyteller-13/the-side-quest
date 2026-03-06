@@ -149,7 +149,19 @@ const keys = {};
 const mouse = { x: 0, y: 0, left: false, right: false };
 const CHEAT_FINAL = 'PRINCE';
 let cheatBuffer = '';
+function isTypingTarget() {
+  const o = document.activeElement;
+  return o && (o.tagName === 'INPUT' || o.tagName === 'TEXTAREA' || o.isContentEditable);
+}
 document.addEventListener('keydown', e => {
+  if (isTypingTarget()) return;
+  if (state === 'menu' && (e.code === 'Enter' || e.code === 'NumpadEnter')) {
+    startGame();
+    setPauseButtonVisible(true);
+    pauseBtn.textContent = CONFIG.buttons.pause;
+    e.preventDefault();
+    return;
+  }
   if (e.code === 'Escape' && state === 'playing') {
     paused = !paused;
     const btn = document.getElementById('pauseBtn');
@@ -168,7 +180,7 @@ document.addEventListener('keydown', e => {
   keys[e.code] = true;
   e.preventDefault();
 });
-document.addEventListener('keyup',   e => { keys[e.code] = false; });
+document.addEventListener('keyup',   e => { if (!isTypingTarget()) keys[e.code] = false; });
 canvas.addEventListener('mousemove', e => {
   const r = canvas.getBoundingClientRect();
   mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top;
@@ -1200,9 +1212,11 @@ const overlayBtnStyle = 'background:linear-gradient(135deg,#ff1493,#c084fc);bord
 function drawOverlay(title, sub, btnText, btnId) {
   const ov=document.getElementById('overlay');
   ov.classList.toggle('death-screen', btnId === 'retryBtn');
-  const scoreLine = `<div style="color:#c084fc;font-size:18px;font-weight:bold;margin-bottom:24px;">${CONFIG.hud.scoreLabel} ${score.toString().padStart(6,'0')}</div>`;
+  const scoreLine = `<div class="overlay-score-line" style="color:#c084fc;font-size:18px;font-weight:bold;margin-bottom:20px;">${CONFIG.hud.scoreLabel} ${score.toString().padStart(6,'0')}</div>`;
   const leaderboardBlock = btnId === 'winBtn' ? `<div id="leaderboardList" class="leaderboard"></div>` : '';
-  const winButtons = `<button id="${btnId}" style="${overlayBtnStyle}">${btnText}</button>`;
+  const winButtons = btnId === 'winBtn'
+    ? `<div class="win-save-row"><div class="win-save-buttons-row"><input type="text" id="saveScoreName" placeholder="${escapeHtml(CONFIG.cutscene.namePlaceholder || 'Your name')}" maxlength="32" /><button type="button" id="saveScoreBtn" class="overlay-btn" style="${overlayBtnStyle}">${CONFIG.cutscene.saveScore || 'SAVE SCORE'}</button><button type="button" id="${btnId}" class="overlay-btn" style="${overlayBtnStyle}">${btnText}</button></div><div id="saveScoreFeedback" class="save-score-feedback"></div></div>`
+    : `<button type="button" id="${btnId}" style="${overlayBtnStyle}">${btnText}</button>`;
   ov.innerHTML=`<h1>${title}</h1><div class="subtitle">${sub}</div>${scoreLine}${leaderboardBlock}${winButtons}`;
   if (btnId === 'winBtn') {
     fetchLeaderboard();
@@ -1242,7 +1256,7 @@ function ensureWinFloatersCanvas() {
   if (winFloatersCanvas && winFloatersCanvas.parentNode) return;
   winFloatersCanvas = document.createElement('canvas');
   winFloatersCanvas.id = 'winFloatersCanvas';
-  winFloatersCanvas.style.cssText = 'position:absolute;inset:0;z-index:100;pointer-events:none';
+  winFloatersCanvas.style.cssText = 'position:absolute;inset:0;z-index:10;pointer-events:none';
   document.getElementById('gameContainer').appendChild(winFloatersCanvas);
 }
 
@@ -1504,6 +1518,43 @@ document.getElementById('startBtn').addEventListener('click', () => {
   startGame();
   setPauseButtonVisible(true);
   pauseBtn.textContent = CONFIG.buttons.pause;
+});
+
+document.getElementById('gameContainer').addEventListener('click', async (e) => {
+  if (e.target.id !== 'saveScoreBtn') return;
+  const nameInput = document.getElementById('saveScoreName');
+  const feedbackEl = document.getElementById('saveScoreFeedback');
+  const saveBtn = e.target;
+  if (!nameInput || !feedbackEl || !saveBtn) return;
+  const name = (nameInput.value || '').trim() || 'Anonymous';
+  saveBtn.disabled = true;
+  feedbackEl.textContent = '';
+  feedbackEl.className = 'save-score-feedback';
+  try {
+    const res = await fetch('/api/scores', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, score })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      feedbackEl.textContent = res.status === 503
+        ? (CONFIG.cutscene.saveUnavailable || 'Save unavailable — run "vercel env pull" to enable')
+        : (CONFIG.cutscene.saveFailed || 'Failed to save');
+      feedbackEl.className = 'save-score-feedback error';
+      saveBtn.disabled = false;
+      return;
+    }
+    feedbackEl.textContent = '';
+    feedbackEl.className = 'save-score-feedback';
+    fetchLeaderboard();
+    saveBtn.remove();
+    if (nameInput && nameInput.parentNode) nameInput.remove();
+  } catch {
+    feedbackEl.textContent = CONFIG.cutscene.saveFailed || 'Failed to save';
+    feedbackEl.className = 'save-score-feedback error';
+  }
+  saveBtn.disabled = false;
 });
 
 pauseBtn.addEventListener('click', () => {

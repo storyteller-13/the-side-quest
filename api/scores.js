@@ -1,14 +1,42 @@
-import { kv } from '@vercel/kv';
-
 const KEY = 'sidequest:scores';
 const TOP_N = 10;
 const NAME_MAX_LEN = 32;
 const DEFAULT_NAME = 'Anonymous';
 
+function hasKvEnv() {
+  return (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) || process.env.REDIS_URL;
+}
+
 function sanitizeName(name) {
   if (typeof name !== 'string') return DEFAULT_NAME;
   const t = name.trim().slice(0, NAME_MAX_LEN);
   return t || DEFAULT_NAME;
+}
+
+async function getKv() {
+  if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+    const { kv } = await import('@vercel/kv');
+    return {
+      zrange: (k, start, stop, opts) => kv.zrange(k, start, stop, opts),
+      zadd: (k, opts) => kv.zadd(k, opts)
+    };
+  }
+  if (process.env.REDIS_URL) {
+    const { createClient } = await import('redis');
+    const client = createClient({ url: process.env.REDIS_URL });
+    await client.connect();
+    return {
+      zrange: async (k, start, stop, opts) => {
+        const rev = opts && opts.rev;
+        const list = await client.zRange(k, start, stop, rev ? { REV: true } : {});
+        return list;
+      },
+      zadd: async (k, opts) => {
+        await client.zAdd(k, [{ score: opts.score, value: opts.member }]);
+      }
+    };
+  }
+  return null;
 }
 
 export default async function handler(req, res) {
@@ -19,6 +47,17 @@ export default async function handler(req, res) {
 
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  if (!hasKvEnv()) {
+    if (req.method === 'GET') return res.status(200).json({ scores: [] });
+    return res.status(503).json({ error: 'Scores unavailable: set KV_REST_API_URL and KV_REST_API_TOKEN, or REDIS_URL in .env.local' });
+  }
+
+  const kv = await getKv();
+  if (!kv) {
+    if (req.method === 'GET') return res.status(200).json({ scores: [] });
+    return res.status(503).json({ error: 'Scores unavailable' });
   }
 
   try {

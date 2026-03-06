@@ -48,7 +48,12 @@ window.CONFIG = {
     trueLove: 'TRUE LOVE! ♥',
     winSubtitle: 'he finally didn\'t run away!<br>those 7 levels were worth it...',
     playAgain: 'PLAY AGAIN',
-    leaderboardTitle: 'HIGH SCORES'
+    saveScore: 'SAVE SCORE',
+    namePlaceholder: 'your name',
+    saveSuccess: 'saved!',
+    saveFailed: 'failed to save',
+    leaderboardTitle: 'HIGH SCORES',
+    saveUnavailable: 'Save unavailable — run "vercel env pull" to enable'
   },
 
   // Death overlay
