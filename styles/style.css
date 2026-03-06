@@ -33,16 +33,59 @@ canvas { display: block; }
 #ammoLabel { display: none; }
 #ammoDisplay { color: #ff69b4; font-size: 13px; font-weight: bold; }
 #overlay {
-  position: absolute; inset: 0; display: flex; flex-direction: column;
+  position: absolute; inset: 0; z-index: 50;
+  display: flex; flex-direction: column;
   align-items: center; justify-content: center; background: rgba(0,0,0,0.85); color: white;
-  padding-bottom: 12vh;
+  padding: 24px 16px 12vh; pointer-events: auto;
+  overflow-y: auto;
 }
+.menu-frame {
+  border: 1px solid #ff69b4;
+  border-radius: 0;
+  padding: 56px 56px 64px;
+  width: min(88vw, 720px);
+  max-width: min(88vw, 720px);
+  box-shadow:
+    0 0 0 1px rgba(255,105,180,0.4),
+    0 0 24px rgba(255,105,180,0.5),
+    0 0 48px rgba(255,20,147,0.25),
+    inset 0 0 80px rgba(255,105,180,0.06);
+  background: rgba(20,0,30,0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.menu-frame .subtitle,
+.menu-frame .controls,
+.menu-frame #startBtn { margin-left: 0; margin-right: 0; }
+#overlay:has(.win-video-link) {
+  padding-bottom: 100px;
+}
+#overlay:has(.win-video-link) .subtitle { margin-bottom: 24px; }
+#overlay:has(.win-video-link) .leaderboard { margin-bottom: 16px; }
+#overlay:has(.win-video-link) .win-save-row { margin-bottom: 24px; }
+.win-video-link {
+  position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+  z-index: 1;
+}
+.win-youtube-link {
+  display: inline-block; padding: 12px 24px;
+  background: rgba(200, 0, 0, 0.9); color: #fff;
+  font-size: 14px; font-weight: bold; font-family: 'Courier New', monospace;
+  letter-spacing: 2px; text-decoration: none; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.3);
+  transition: background 0.2s, transform 0.1s;
+}
+.win-youtube-link:hover { background: rgba(220, 20, 20, 1); color: #fff; transform: scale(1.05); }
 #overlay h1 {
-  font-size: 96px; color: #ff69b4;
+  font-size: clamp(42px, 10vw, 96px); color: #ff69b4;
   text-shadow: 0 0 20px #ff69b4, 0 0 40px #ff1493;
-  margin-top: -24px; margin-bottom: 8px; letter-spacing: 8px;
+  margin-top: -24px; margin-bottom: 8px; letter-spacing: 4px;
+  text-align: center; line-height: 1.15;
+  max-width: min(95vw, 900px); word-break: break-word;
 }
-#overlay.death-screen h1 { font-size: 72px; }
+#overlay.death-screen h1 { font-size: clamp(36px, 8vw, 72px); }
 #overlay .subtitle { color: #c084fc; font-size: 26px; font-weight: bold; letter-spacing: 4px; margin-bottom: 40px; text-align: center; }
 #overlay.death-screen .subtitle { font-size: 20px; }
 #overlay .controls {
@@ -72,6 +115,31 @@ canvas { display: block; }
 .leaderboard-list li::before { content: counter(lb) ". "; color: #ff69b4; }
 .lb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lb-score { color: #ff69b4; flex-shrink: 0; }
+
+.win-save-row {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  margin-bottom: 16px; width: 100%; max-width: 420px;
+}
+.win-save-row .save-name-row {
+  display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; flex-wrap: wrap;
+}
+.win-save-row input#saveScoreName {
+  padding: 12px 18px; font-size: 16px; font-family: 'Courier New', monospace;
+  background: rgba(26,0,40,0.95); border: 2px solid #ff69b4; color: #fff;
+  border-radius: 10px; width: 180px; min-width: 140px; max-width: 100%;
+  letter-spacing: 1px; flex: 1;
+}
+.win-save-row input#saveScoreName::placeholder { color: rgba(255,255,255,0.5); }
+.win-save-row input#saveScoreName:focus { outline: none; border-color: #c084fc; box-shadow: 0 0 14px rgba(255,105,180,0.5); }
+.win-buttons-row {
+  display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap;
+}
+.win-buttons-row .overlay-btn { flex-shrink: 0; }
+.save-score-feedback { min-height: 22px; font-size: 14px; margin-top: 2px; text-align: center; }
+.save-score-feedback.success { color: #86efac; }
+.save-score-feedback.error { color: #fca5a5; }
+#overlay .overlay-btn:hover { transform: scale(1.05); box-shadow: 0 0 28px rgba(255,20,147,0.7); }
+#overlay .overlay-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
 #pauseBtn {
   position: fixed; left: 16px; bottom: 16px;
   background: rgba(26,0,40,0.9); border: 1px solid #ff69b4; color: #ff69b4;

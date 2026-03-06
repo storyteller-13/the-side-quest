@@ -1,9 +1,11 @@
-import { kv } from '@vercel/kv';
-
 const KEY = 'sidequest:scores';
 const TOP_N = 10;
 const NAME_MAX_LEN = 32;
 const DEFAULT_NAME = 'Anonymous';
+
+function hasKvEnv() {
+  return process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN;
+}
 
 function sanitizeName(name) {
   if (typeof name !== 'string') return DEFAULT_NAME;
@@ -20,6 +22,13 @@ export default async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  if (!hasKvEnv()) {
+    if (req.method === 'GET') return res.status(200).json({ scores: [] });
+    return res.status(503).json({ error: 'Scores unavailable: set KV_REST_API_URL and KV_REST_API_TOKEN (e.g. vercel env pull)' });
+  }
+
+  const { kv } = await import('@vercel/kv');
 
   try {
     if (req.method === 'GET') {
