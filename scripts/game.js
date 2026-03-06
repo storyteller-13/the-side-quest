@@ -189,17 +189,56 @@ let screenShake = 0;
 function generateMap() {
   tilemap = [];
   for (let r = 0; r < ROWS; r++) { tilemap[r] = []; for (let c = 0; c < COLS; c++) tilemap[r][c] = T.WALL; }
-  const hRoads = [2, 8, 14, 20, 26, 32];
-  const vRoads = [2, 9, 16, 23, 30, 37, 44];
-  for (const row of hRoads) for (let c = 0; c < COLS; c++) {
-    tilemap[row][c] = T.ROAD;
-    if (row+1 < ROWS) tilemap[row+1][c] = T.ROAD;
-    if (row+2 < ROWS) tilemap[row+2][c] = T.ROAD;
+
+  // Carve random paths: multiple "worms" that meander with variable width (narrow alleys to wide plazas)
+  const carve = (r, c, w) => {
+    const hw = Math.floor(w / 2);
+    for (let dr = -hw; dr <= hw; dr++) for (let dc = -hw; dc <= hw; dc++) {
+      const rr = r + dr, cc = c + dc;
+      if (rr >= 0 && rr < ROWS && cc >= 0 && cc < COLS) tilemap[rr][cc] = T.ROAD;
+    }
+  };
+  const dirs = [[0,1],[0,-1],[1,0],[-1,0]]; // E,W,S,N (indices 0,1,2,3)
+  const eastBias = [0,0,0,0,0,0, 2,2, 3];   // bias E (toward castle), some S/N, no W
+
+  for (let worm = 0; worm < 6; worm++) {
+    let r = 4 + Math.floor(Math.random() * (ROWS - 10));
+    let c = 2 + Math.floor(Math.random() * 8);
+    const steps = 120 + Math.floor(Math.random() * 100);
+    for (let s = 0; s < steps; s++) {
+      const width = Math.random() < 0.4 ? 1 : (Math.random() < 0.6 ? 2 : 3);
+      carve(r, c, width);
+      const d = dirs[eastBias[Math.floor(Math.random() * eastBias.length)]];
+      r = Math.max(1, Math.min(ROWS - 2, r + d[0]));
+      c = Math.max(1, Math.min(COLS - 2, c + d[1]));
+    }
   }
-  for (const col of vRoads) for (let r = 0; r < ROWS; r++) {
-    tilemap[r][col] = T.ROAD;
-    if (col+1 < COLS) tilemap[r][col+1] = T.ROAD;
+
+  // Guarantee player spawn (3,9) and small clearing
+  for (let dr = -1; dr <= 2; dr++) for (let dc = -1; dc <= 2; dc++) {
+    const rr = 9 + dr, cc = 3 + dc;
+    if (rr >= 0 && rr < ROWS && cc >= 0 && cc < COLS) tilemap[rr][cc] = T.ROAD;
   }
+
+  // Castle and road to castle
+  for (let r = 12; r < 22; r++) for (let c = 42; c < 49; c++) tilemap[r][c] = T.CASTLE;
+  for (let c = 37; c < 49; c++) { tilemap[16][c] = T.ROAD; tilemap[17][c] = T.ROAD; tilemap[18][c] = T.ROAD; }
+
+  // Connect left side to right: carve a few horizontal meanders so paths reach castle
+  for (let band = 0; band < 4; band++) {
+    const row = 6 + band * 8 + Math.floor(Math.random() * 5);
+    if (row >= ROWS - 1) continue;
+    const len = 15 + Math.floor(Math.random() * 20);
+    let c = 5 + Math.floor(Math.random() * 10);
+    for (let i = 0; i < len && c < COLS - 2; i++) {
+      const w = Math.random() < 0.5 ? 1 : 2;
+      carve(row, c, w);
+      carve(row + 1, c, w);
+      c += 1 + (Math.random() < 0.6 ? 1 : 0);
+    }
+  }
+
+  // Sprinkle parks and roses on remaining wall tiles
   for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
     if (tilemap[r][c] === T.WALL) {
       const rnd = Math.random();
@@ -207,8 +246,7 @@ function generateMap() {
       else if (rnd < 0.08) tilemap[r][c] = T.ROSE;
     }
   }
-  for (let r = 12; r < 22; r++) for (let c = 42; c < 49; c++) tilemap[r][c] = T.CASTLE;
-  for (let c = 37; c < 49; c++) { tilemap[16][c] = T.ROAD; tilemap[17][c] = T.ROAD; tilemap[18][c] = T.ROAD; }
+
   buildWallBlocks();
 }
 
@@ -279,8 +317,11 @@ function spawnMonsters(zoneIdx) {
   const count = ZONES[zoneIdx].monsterCount;
   const spd   = ZONES[zoneIdx].monsterSpeed;
   const roadCells = [];
-  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++)
-    if (tilemap[r][c] === T.ROAD && c > 5) roadCells.push([r,c]);
+  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) {
+    const t = tilemap[r][c];
+    if ((t === T.ROAD || t === T.PARK || t === T.GRASS) && c > 5) roadCells.push([r,c]);
+  }
+  if (roadCells.length === 0) return;
   for (let i=0;i<count;i++) {
     const typeIdx = Math.floor(Math.random() * Math.min(zoneIdx+2, MONSTER_TYPES.length));
     const type = MONSTER_TYPES[typeIdx];
