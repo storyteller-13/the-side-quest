@@ -1,0 +1,15 @@
+{
+  "name": "the-side-quest",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "deploy": "vercel"
+  },
+  "dependencies": {
+    "@vercel/kv": "^3.0.0"
+  },
+  "devDependencies": {
+    "vercel": "^39.0.0"
+  }
+}

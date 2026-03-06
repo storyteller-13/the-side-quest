@@ -46,6 +46,15 @@ canvas { display: block; }
   box-shadow: 0 0 20px rgba(255,20,147,0.5); transition: transform 0.1s, box-shadow 0.1s; pointer-events: all;
 }
 #startBtn:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(255,20,147,0.8); }
+#overlay .overlay-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+#overlay .overlay-buttons button:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(255,20,147,0.8); }
+.leaderboard { margin-bottom: 20px; min-height: 60px; }
+.leaderboard-title { color: #ffd700; font-size: 14px; letter-spacing: 3px; margin-bottom: 8px; }
+.leaderboard-list { list-style: none; counter-reset: lb; color: #c084fc; font-size: 14px; }
+.leaderboard-list li { counter-increment: lb; padding: 2px 0; display: flex; justify-content: space-between; gap: 24px; max-width: 280px; margin: 0 auto; }
+.leaderboard-list li::before { content: counter(lb) ". "; color: #ff69b4; }
+.lb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-score { color: #ffd700; flex-shrink: 0; }
 #pauseBtn {
   position: fixed; left: 16px; bottom: 16px;
   background: rgba(26,0,40,0.9); border: 1px solid #ff69b4; color: #ff69b4;

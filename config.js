@@ -47,6 +47,11 @@ window.CONFIG = {
     trueLove: 'TRUE LOVE! ♥',
     winSubtitle: 'he finally didn\'t run away!<br>all 7 levels worth it...',
     playAgain: 'PLAY AGAIN',
+    saveScore: 'SAVE SCORE',
+    saveScorePrompt: 'your name (for the leaderboard):',
+    leaderboardTitle: 'HIGH SCORES',
+    savedFeedback: 'SAVED!',
+    saveFailedFeedback: 'FAILED',
     winMusicVideoId: 'tAGnKpE4NCI'  // Metallica - Nothing Else Matters
   },
 

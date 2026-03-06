@@ -844,11 +844,16 @@ function render() {
   }
 }
 
+const overlayBtnStyle = 'background:linear-gradient(135deg,#ff1493,#c084fc);border:none;color:white;padding:14px 48px;font-size:18px;font-weight:bold;font-family:\'Courier New\',monospace;letter-spacing:3px;cursor:pointer;text-transform:uppercase;border-radius:12px;box-shadow:0 0 20px rgba(255,20,147,0.5);pointer-events:all;';
 function drawOverlay(title, sub, btnText, btnId) {
   const ov=document.getElementById('overlay');
-  ov.innerHTML=`<h1>${title}</h1><div class="subtitle">${sub}</div>
-    <div style="color:#c084fc;font-size:18px;font-weight:bold;margin-bottom:24px;">${CONFIG.hud.scoreLabel} ${score.toString().padStart(6,'0')}</div>
-    <button id="${btnId}" style="background:linear-gradient(135deg,#ff1493,#c084fc);border:none;color:white;padding:14px 48px;font-size:18px;font-weight:bold;font-family:'Courier New',monospace;letter-spacing:3px;cursor:pointer;text-transform:uppercase;border-radius:12px;box-shadow:0 0 20px rgba(255,20,147,0.5);pointer-events:all;">${btnText}</button>`;
+  const scoreLine = `<div style="color:#c084fc;font-size:18px;font-weight:bold;margin-bottom:24px;">${CONFIG.hud.scoreLabel} ${score.toString().padStart(6,'0')}</div>`;
+  const leaderboardBlock = btnId === 'winBtn' ? `<div id="leaderboardList" class="leaderboard"></div>` : '';
+  const winButtons = btnId === 'winBtn'
+    ? `<div class="overlay-buttons"><button id="${btnId}" style="${overlayBtnStyle}">${btnText}</button><button id="saveScoreBtn" style="${overlayBtnStyle}">${CONFIG.cutscene.saveScore}</button></div>`
+    : `<button id="${btnId}" style="${overlayBtnStyle}">${btnText}</button>`;
+  ov.innerHTML=`<h1>${title}</h1><div class="subtitle">${sub}</div>${scoreLine}${leaderboardBlock}${winButtons}`;
+  if (btnId === 'winBtn') fetchLeaderboard();
   if (btnId === 'winBtn') {
     ensureWinFloatersCanvas();
     winFloaters = [];
@@ -863,6 +868,58 @@ function drawOverlay(title, sub, btnText, btnId) {
     ov.appendChild(iframe);
   }
   ov.style.display='flex';
+}
+
+async function fetchLeaderboard() {
+  const el = document.getElementById('leaderboardList');
+  if (!el) return;
+  try {
+    const res = await fetch('/api/scores');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    const list = data.scores || [];
+    if (list.length === 0) {
+      el.innerHTML = '';
+      return;
+    }
+    el.innerHTML = `<div class="leaderboard-title">${CONFIG.cutscene.leaderboardTitle}</div><ol class="leaderboard-list">${list.map((e, i) => `<li><span class="lb-name">${escapeHtml(e.name)}</span><span class="lb-score">${Number(e.score).toLocaleString()}</span></li>`).join('')}</ol>`;
+  } catch {
+    el.innerHTML = '';
+  }
+}
+
+function escapeHtml(s) {
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+async function saveScore() {
+  const btn = document.getElementById('saveScoreBtn');
+  const orig = btn ? btn.textContent : '';
+  if (btn) btn.textContent = '...';
+  const name = prompt(CONFIG.cutscene.saveScorePrompt, 'Anonymous');
+  if (btn) btn.textContent = orig;
+  if (name === null) return;
+  try {
+    const res = await fetch('/api/scores', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: (name || 'Anonymous').trim().slice(0, 32), score })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    if (btn) {
+      btn.textContent = CONFIG.cutscene.savedFeedback;
+      setTimeout(() => { btn.textContent = CONFIG.cutscene.saveScore; }, 2000);
+    }
+    fetchLeaderboard();
+  } catch {
+    if (btn) {
+      btn.textContent = CONFIG.cutscene.saveFailedFeedback;
+      setTimeout(() => { btn.textContent = CONFIG.cutscene.saveScore; }, 2000);
+    }
+  }
 }
 
 let winFloatersCanvas = null;
@@ -1097,6 +1154,8 @@ function gameLoop() {
     if (cutsceneTimer===300) {
       drawOverlay(CONFIG.cutscene.trueLove, CONFIG.cutscene.winSubtitle, CONFIG.cutscene.playAgain, 'winBtn');
       document.getElementById('winBtn').addEventListener('click', startGame);
+      const saveBtn = document.getElementById('saveScoreBtn');
+      if (saveBtn) saveBtn.addEventListener('click', saveScore);
       state='winScreen';
     }
     drawMinimap();
@@ -1111,6 +1170,8 @@ function gameLoop() {
     if (!document.getElementById('winBtn')) {
       drawOverlay(CONFIG.cutscene.trueLove, CONFIG.cutscene.winSubtitle, CONFIG.cutscene.playAgain, 'winBtn');
       document.getElementById('winBtn').addEventListener('click', startGame);
+      const saveBtn = document.getElementById('saveScoreBtn');
+      if (saveBtn) saveBtn.addEventListener('click', saveScore);
     }
     updateAndDrawWinFloaters();
     render();
