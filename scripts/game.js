@@ -850,6 +850,7 @@ function render() {
 const overlayBtnStyle = 'background:linear-gradient(135deg,#ff1493,#c084fc);border:none;color:white;padding:14px 48px;font-size:18px;font-weight:bold;font-family:\'Courier New\',monospace;letter-spacing:3px;cursor:pointer;text-transform:uppercase;border-radius:12px;box-shadow:0 0 20px rgba(255,20,147,0.5);pointer-events:all;';
 function drawOverlay(title, sub, btnText, btnId) {
   const ov=document.getElementById('overlay');
+  ov.classList.toggle('death-screen', btnId === 'retryBtn');
   const scoreLine = `<div style="color:#c084fc;font-size:18px;font-weight:bold;margin-bottom:24px;">${CONFIG.hud.scoreLabel} ${score.toString().padStart(6,'0')}</div>`;
   const leaderboardBlock = btnId === 'winBtn' ? `<div id="leaderboardList" class="leaderboard"></div>` : '';
   const winButtons = btnId === 'winBtn'
