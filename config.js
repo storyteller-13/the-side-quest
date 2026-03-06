@@ -10,7 +10,7 @@ window.CONFIG = {
   controls: [
     { keys: 'wasd / arrow keys', action: 'move' },
     { keys: 'space / left click', action: 'melee attack' },
-    { keys: 'e / right click', action: 'throw heart (hold to charge)' },
+    { keys: 'e / right click', action: 'boom attack' },
     { keys: 'esc', action: 'pause the game' }
   ],
 
@@ -19,7 +19,7 @@ window.CONFIG = {
     health: 'health',
     loveMeter: 'lovemeter',
     ammo: 'ammo',
-    ammoFormat: 'HEARTS: %d',
+    ammoFormat: 'BOOOM: %d',
     wantedStar: '♥',
     scoreLabel: 'score:'
   },
@@ -38,7 +38,7 @@ window.CONFIG = {
     paused: 'PAUSED',
     pressResume: 'press esc or click resume',
     boom: 'BOOM! x3',
-    heartPickup: '+HEART',
+    heartPickup: '+BOOOM',
     fullHealth: 'FULL HEALTH!'
   },
 

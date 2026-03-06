@@ -36,9 +36,9 @@ Top-down GTA-style action game. The princess fights monsters to reach the prince
 **Controls**
 - `WASD` / Arrow Keys — Move
 - `Space` / Left Click — Melee attack
-- `E` / Right Click — Throw heart (tap for quick shot, hold to charge)
+- `E` / Right Click — Boom attack (tap for quick shot, hold to charge)
 
-**Heart throw**
+**Boom attack**
 - Tap: quick heart (35 dmg)
 - Hold ~1s: charged gold heart (115 dmg, pierces up to 3 enemies)
 - Ammo regenerates at +1 per 5 seconds (max 10)

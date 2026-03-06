@@ -904,6 +904,24 @@ function explodeMonster(m) {
   showFloatingText(m.x,m.y-m.size-10,CONFIG.messages.boom,'#ff69b4');
 }
 
+function heartImpactExplosion(x, y, damage) {
+  const radius = 70;
+  playSound('explode');
+  screenShake = Math.min(screenShake + 12, 25);
+  shockwaves.push({ x, y, radius: 0, maxRadius: 120, life: 22, maxLife: 22, color: '#ff69b4', delay: 0 });
+  shockwaves.push({ x, y, radius: 0, maxRadius: 80, life: 18, maxLife: 18, color: '#ff1493', delay: 3 });
+  spawnParticles(x, y, '#ff69b4', 25, 10);
+  spawnParticles(x, y, '#ff1493', 20, 8);
+  spawnParticles(x, y, '#ffffff', 12, 6);
+  for (const m of monsters) {
+    if (m.dead || m.exploding) continue;
+    const dx = m.x - x, dy = m.y - y;
+    if (dx * dx + dy * dy < radius * radius) {
+      damageMonster(m, damage);
+    }
+  }
+}
+
 function damageMonster(m, dmg) {
   m.hp-=dmg; spawnParticles(m.x,m.y,m.color,5,4);
   if (m.hp<=0&&!m.dead&&!m.exploding) {
@@ -954,6 +972,7 @@ function updateProjectiles() {
     p.x+=p.vx; p.y+=p.vy; p.spin=(p.spin||0)+0.18; p.life--;
     if (p.life<=0||!isWalkable(p.x,p.y,4)) {
       spawnParticles(p.x,p.y,p.charge>=1?'#ff69b4':'#ff69b4',8,4);
+      if (p.owner==='player'&&p.type==='heart') heartImpactExplosion(p.x,p.y,p.damage);
       projectiles.splice(i,1); continue;
     }
     if (p.owner==='player') {
@@ -962,6 +981,7 @@ function updateProjectiles() {
         const dx=m.x-p.x,dy=m.y-p.y;
         if (Math.sqrt(dx*dx+dy*dy)<m.size+(p.size||8)) {
           damageMonster(m,p.damage);
+          if (p.type==='heart') heartImpactExplosion(p.x,p.y,p.damage);
           if (p.pierce&&p.pierceCount>0) { p.pierceCount--; p.vx*=0.85; p.vy*=0.85; }
           else { projectiles.splice(i,1); break; }
         }
