@@ -20,15 +20,15 @@ canvas { display: block; }
   width: 180px; height: 14px; background: #1a0020;
   border: 1px solid #c084fc; border-radius: 2px; overflow: hidden; position: relative;
 }
-#loveFill { height: 100%; background: linear-gradient(90deg, #c084fc, #ff69b4, #ffd700); transition: width 0.1s; width: 0%; }
-#scoreDisplay { color: #ffd700; font-size: 18px; font-weight: bold; text-shadow: 0 0 8px #ffd700; }
+#loveFill { height: 100%; background: linear-gradient(90deg, #c084fc, #ff69b4, #ff1493); transition: width 0.1s; width: 0%; }
+#scoreDisplay { color: #ff69b4; font-size: 18px; font-weight: bold; text-shadow: 0 0 8px #ff69b4; }
 #levelDisplay {
   position: absolute; left: 50%; top: 12px; transform: translateX(-50%);
   background: #000; border: 1px solid #333; border-radius: 12px;
   color: #fff; font-size: 20px; font-weight: bold; letter-spacing: 2px;
   text-align: center; padding: 8px 20px;
 }
-#wantedStars { color: #ffd700; font-size: 16px; letter-spacing: 2px; }
+#wantedStars { color: #ff69b4; font-size: 16px; letter-spacing: 2px; }
 #minimap { position: absolute; bottom: 16px; right: 16px; border: 1px solid #ff69b4; background: rgba(0,0,0,0.6); }
 #ammoDisplay { color: #ff69b4; font-size: 13px; }
 #overlay {
@@ -54,12 +54,12 @@ canvas { display: block; }
 #overlay .overlay-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
 #overlay .overlay-buttons button:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(255,20,147,0.8); }
 .leaderboard { margin-bottom: 20px; min-height: 60px; }
-.leaderboard-title { color: #ffd700; font-size: 14px; letter-spacing: 3px; margin-bottom: 8px; }
+.leaderboard-title { color: #ff69b4; font-size: 14px; letter-spacing: 3px; margin-bottom: 8px; }
 .leaderboard-list { list-style: none; counter-reset: lb; color: #c084fc; font-size: 14px; }
 .leaderboard-list li { counter-increment: lb; padding: 2px 0; display: flex; justify-content: space-between; gap: 24px; max-width: 280px; margin: 0 auto; }
 .leaderboard-list li::before { content: counter(lb) ". "; color: #ff69b4; }
 .lb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lb-score { color: #ffd700; flex-shrink: 0; }
+.lb-score { color: #ff69b4; flex-shrink: 0; }
 #pauseBtn {
   position: fixed; left: 16px; bottom: 16px;
   background: rgba(26,0,40,0.9); border: 1px solid #ff69b4; color: #ff69b4;
@@ -67,4 +67,4 @@ canvas { display: block; }
   letter-spacing: 2px; cursor: pointer; text-transform: uppercase; border-radius: 2px;
   pointer-events: all; transition: background 0.15s, color 0.15s;
 }
-#pauseBtn:hover { background: rgba(255,105,180,0.25); color: #ffd700; }
+#pauseBtn:hover { background: rgba(255,105,180,0.25); color: #ff69b4; }

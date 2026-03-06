@@ -58,25 +58,25 @@ window.CONFIG = {
   // Death overlay
   death: {
     title: 'YOU LOST THE PRINCE!',
-    subtitle: 'i know it\'s tiring, but do you want to give it another try?',
+    subtitle: 'i know it\'s tiring, but would like try to try again?',
     retry: 'RETRY'
   },
 
   // Zones (name, bg, monsterCount, monsterSpeed, fleeSpeed, excuse, taunts)
   zones: [
-    { name: 'THE DARK STREETS OF BERLIN',   bg: '#1a0028', monsterCount: 8,  monsterSpeed: 1.0, fleeSpeed: 6,
+    { name: 'THE DARK STREETS IN BERLIN',   bg: '#1a0028', monsterCount: 8,  monsterSpeed: 1.0, fleeSpeed: 6,
       excuse: "I'M NOT READY!",
       taunts: ["YOU'LL NEVER CATCH ME!"] },
-    { name: 'HAUNTED GARDENS IN OAHU',    bg: '#001a0a', monsterCount: 13, monsterSpeed: 1.2, fleeSpeed: 8,
+    { name: 'THE HAUNTED CAVE IN OAHU',    bg: '#001a0a', monsterCount: 13, monsterSpeed: 1.2, fleeSpeed: 8,
       excuse: "I FORGOT SOMETHING!",
       taunts: ["SO MANY MONSTERS!"] },
-    { name: 'THE CURSED FOREST OF BRAZIL',  bg: '#0d1a00', monsterCount: 18, monsterSpeed: 1.4, fleeSpeed: 10,
+    { name: 'THE CURSED FOREST IN BRAZIL',  bg: '#0d1a00', monsterCount: 18, monsterSpeed: 1.4, fleeSpeed: 10,
       excuse: "I LEFT THE OVEN ON!",
       taunts: ["I HAVE PLACES TO BE!"] },
-    { name: 'THE DEMON SWAMP OF NEW ORLEANS',    bg: '#001a14', monsterCount: 22, monsterSpeed: 1.6, fleeSpeed: 12,
+    { name: 'THE DEMON SWAMP IN NEW ORLEANS',    bg: '#001a14', monsterCount: 22, monsterSpeed: 1.6, fleeSpeed: 12,
       excuse: "I NEED TO WASH MY HAIR!",
       taunts: ["SO CLOSE, YET SO FAR!"] },
-    { name: 'THE LOST ISLAND OF MALAYSIA',     bg: '#1a0800', monsterCount: 26, monsterSpeed: 1.8, fleeSpeed: 14,
+    { name: 'THE GHOST ISLAND IN MALAYSIA',     bg: '#1a0800', monsterCount: 26, monsterSpeed: 1.8, fleeSpeed: 14,
       excuse: "MY MOM IS CALLING!",
       taunts: ["I'M NOT READY FOR COMMITMENT!"] },
     { name: 'THE FINAL FORTRESS IN DENVER', bg: '#08081a', monsterCount: 30, monsterSpeed: 2.0, fleeSpeed: 16,
