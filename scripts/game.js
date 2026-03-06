@@ -1058,9 +1058,9 @@ function gameLoop() {
       const r = radius;
       const tailW = 18;
       const tailH = 22;
-      // Single path: balloon + tail so stroke doesn't cross at the junction
-      ctx.fillStyle = '#fffef9';
-      ctx.strokeStyle = '#ff69b4';
+      // Single path: balloon + tail with white border
+      ctx.fillStyle = '#000';
+      ctx.strokeStyle = '#fff';
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(bubbleX + r, bubbleY);
@@ -1081,7 +1081,7 @@ function gameLoop() {
       // Text inside balloon
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#2d0a1a';
+      ctx.fillStyle = '#fff';
       ctx.font = 'bold 28px monospace';
       ctx.fillText(msg, cx, bubbleY + bubbleH / 2);
       // Superman emoji (large, below balloon — he's "talking")
@@ -1141,8 +1141,8 @@ function gameLoop() {
       const a=Math.min(1,(cutsceneTimer-100)/40);
       ctx.save(); ctx.globalAlpha=a;
       ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,0,W,H);
-      ctx.fillStyle='#ffd700'; ctx.font=`bold ${Math.floor(36+Math.sin(cutsceneTimer*0.05)*4)}px monospace`;
-      ctx.textAlign='center'; ctx.shadowColor='#ffd700'; ctx.shadowBlur=30;
+      ctx.fillStyle='#ff69b4'; ctx.font=`bold ${Math.floor(36+Math.sin(cutsceneTimer*0.05)*4)}px monospace`;
+      ctx.textAlign='center'; ctx.shadowColor='#ff69b4'; ctx.shadowBlur=30;
       ctx.fillText(CONFIG.cutscene.finally, W/2, H/2-40); ctx.shadowBlur=0;
       if (cutsceneTimer>160) {
         ctx.fillStyle='#ff69b4'; ctx.font='bold 48px monospace';
