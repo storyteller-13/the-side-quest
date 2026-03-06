@@ -155,6 +155,13 @@ function isTypingTarget() {
 }
 document.addEventListener('keydown', e => {
   if (isTypingTarget()) return;
+  if (state === 'menu' && (e.code === 'Enter' || e.code === 'NumpadEnter')) {
+    startGame();
+    setPauseButtonVisible(true);
+    pauseBtn.textContent = CONFIG.buttons.pause;
+    e.preventDefault();
+    return;
+  }
   if (e.code === 'Escape' && state === 'playing') {
     paused = !paused;
     const btn = document.getElementById('pauseBtn');
