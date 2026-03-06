@@ -847,8 +847,8 @@ function render() {
 function drawOverlay(title, sub, btnText, btnId) {
   const ov=document.getElementById('overlay');
   ov.innerHTML=`<h1>${title}</h1><div class="subtitle">${sub}</div>
-    <div style="color:#c084fc;font-size:14px;margin-bottom:24px;">${CONFIG.hud.scoreLabel} ${score.toString().padStart(6,'0')}</div>
-    <button id="${btnId}" style="background:linear-gradient(135deg,#ff1493,#c084fc);border:none;color:white;padding:14px 48px;font-size:18px;font-family:'Courier New',monospace;letter-spacing:3px;cursor:pointer;text-transform:uppercase;border-radius:2px;box-shadow:0 0 20px rgba(255,20,147,0.5);pointer-events:all;">${btnText}</button>`;
+    <div style="color:#c084fc;font-size:18px;font-weight:bold;margin-bottom:24px;">${CONFIG.hud.scoreLabel} ${score.toString().padStart(6,'0')}</div>
+    <button id="${btnId}" style="background:linear-gradient(135deg,#ff1493,#c084fc);border:none;color:white;padding:14px 48px;font-size:18px;font-weight:bold;font-family:'Courier New',monospace;letter-spacing:3px;cursor:pointer;text-transform:uppercase;border-radius:12px;box-shadow:0 0 20px rgba(255,20,147,0.5);pointer-events:all;">${btnText}</button>`;
   if (btnId === 'winBtn') {
     ensureWinFloatersCanvas();
     winFloaters = [];
@@ -887,14 +887,16 @@ function updateAndDrawWinFloaters() {
   if (frameCount % 2 === 0) {
     const chars = ['♥', '💀'];
     for (let i = 0; i < 2; i++) {
-      winFloaters.push({
-        x: Math.random() * cw,
-        y: ch + 20,
-        char: chars[Math.floor(Math.random() * chars.length)],
-        speed: 0.8 + Math.random() * 1.2,
-        size: 18 + Math.random() * 22,
-        opacity: 0.5 + Math.random() * 0.5
-      });
+      if (Math.random() >= 0.725) {
+        winFloaters.push({
+          x: Math.random() * cw,
+          y: ch + 20,
+          char: chars[Math.floor(Math.random() * chars.length)],
+          speed: 0.8 + Math.random() * 1.2,
+          size: 18 + Math.random() * 22,
+          opacity: 0.5 + Math.random() * 0.5
+        });
+      }
     }
   }
   for (let i = winFloaters.length - 1; i >= 0; i--) {
@@ -911,8 +913,8 @@ function updateAndDrawWinFloaters() {
     fctx.globalAlpha = f.opacity * Math.min(1, (ch - f.y) / 80);
     fctx.font = `${Math.round(f.size)}px sans-serif`;
     if (f.char === '♥') {
-      fctx.fillStyle = '#ff69b4';
-      fctx.shadowColor = '#ff1493';
+      fctx.fillStyle = '#000';
+      fctx.shadowColor = '#333';
     } else {
       fctx.fillStyle = '#e2e8f0';
       fctx.shadowColor = '#94a3b8';

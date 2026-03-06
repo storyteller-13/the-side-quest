@@ -10,7 +10,8 @@ window.CONFIG = {
   controls: [
     { keys: 'wasd / arrow keys', action: 'move' },
     { keys: 'space / left click', action: 'melee attack' },
-    { keys: 'e / right click', action: 'throw heart (hold to charge)' }
+    { keys: 'e / right click', action: 'throw heart (hold to charge)' },
+    { keys: 'esc', action: 'pause the game' }
   ],
 
   // HUD
@@ -44,7 +45,7 @@ window.CONFIG = {
   cutscene: {
     finally: 'FINALLY...',
     trueLove: 'TRUE LOVE! ♥',
-    winSubtitle: 'he finally didn\'t run away! all 7 levels worth it.',
+    winSubtitle: 'he finally didn\'t run away!<br>all 7 levels worth it...',
     playAgain: 'PLAY AGAIN',
     winMusicVideoId: 'tAGnKpE4NCI'  // Metallica - Nothing Else Matters
   },
