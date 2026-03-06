@@ -33,10 +33,36 @@ canvas { display: block; }
 #ammoLabel { display: none; }
 #ammoDisplay { color: #ff69b4; font-size: 13px; font-weight: bold; }
 #overlay {
-  position: absolute; inset: 0; display: flex; flex-direction: column;
+  position: absolute; inset: 0; z-index: 50;
+  display: flex; flex-direction: column;
   align-items: center; justify-content: center; background: rgba(0,0,0,0.85); color: white;
-  padding-bottom: 12vh;
+  padding: 24px 16px 12vh; pointer-events: auto;
+  overflow-y: auto;
 }
+.menu-frame {
+  border: 1px solid #c084fc;
+  border-radius: 24px;
+  padding: 56px 64px 64px;
+  width: min(95vw, 960px);
+  max-width: min(95vw, 960px);
+  box-shadow:
+    0 0 0 1px rgba(192,132,252,0.4),
+    0 0 24px rgba(192,132,252,0.5),
+    0 0 48px rgba(139,92,246,0.25),
+    inset 0 0 80px rgba(192,132,252,0.06);
+  background: rgba(30,0,50,0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.menu-frame h1 {
+  white-space: nowrap;
+  font-size: clamp(42px, 10vw, 96px);
+}
+.menu-frame .subtitle,
+.menu-frame .controls,
+.menu-frame #startBtn { margin-left: 0; margin-right: 0; max-width: 100%; overflow-wrap: break-word; }
 #overlay h1 {
   font-size: 96px; color: #ff69b4;
   text-shadow: 0 0 20px #ff69b4, 0 0 40px #ff1493;
