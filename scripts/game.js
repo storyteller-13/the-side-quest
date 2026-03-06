@@ -321,10 +321,7 @@ function drawTile(r, c) {
   const colors = [mixHex(baseColors[0], zoneBg, 0.35), mixHex(baseColors[1], zoneBg, 0.35)];
   ctx.fillStyle = colors[(r+c)%2];
   ctx.fillRect(sx, sy, TILE, TILE);
-  if (t===T.ROAD) {
-    if (c%9===4) { ctx.fillStyle='#3d2855'; ctx.fillRect(sx+TILE/2-1,sy,2,TILE); }
-    if (r%7===3) { ctx.fillStyle='#3d2855'; ctx.fillRect(sx,sy+TILE/2-1,TILE,2); }
-  } else if (t===T.WALL) {
+  if (t===T.WALL) {
     ctx.strokeStyle='#2a1040'; ctx.lineWidth=0.5;
     ctx.strokeRect(sx+2,sy+2,TILE-4,TILE-4);
     if ((r*7+c*13)%17===0) { ctx.fillStyle='rgba(255,200,100,0.15)'; ctx.fillRect(sx+8,sy+6,6,8); ctx.fillRect(sx+18,sy+6,6,8); }

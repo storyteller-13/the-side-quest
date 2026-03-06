@@ -17,7 +17,7 @@ window.CONFIG = {
   // HUD
   hud: {
     health: 'health',
-    loveMeter: 'love meter',
+    loveMeter: 'lovemeter',
     ammo: 'ammo',
     ammoFormat: 'HEARTS: %d',
     wantedStar: '♥',
