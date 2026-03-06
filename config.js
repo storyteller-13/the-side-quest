@@ -45,7 +45,7 @@ window.CONFIG = {
   cutscene: {
     finally: 'FINALLY...',
     trueLove: 'TRUE LOVE! ♥',
-    winSubtitle: 'he finally didn\'t run away!<br>all 7 levels worth it...',
+    winSubtitle: 'he finally didn\'t run away!<br>those 7 levels were worth it...',
     playAgain: 'PLAY AGAIN',
     saveScore: 'SAVE SCORE',
     saveScorePrompt: 'your name (for the leaderboard):',
@@ -58,7 +58,7 @@ window.CONFIG = {
   // Death overlay
   death: {
     title: 'YOU LOST THE PRINCE!',
-    subtitle: 'i know it\'s tiring, but would like try to try again?',
+    subtitle: 'i know it\'s tiring, but would you like try to try again?',
     retry: 'RETRY'
   },
 
