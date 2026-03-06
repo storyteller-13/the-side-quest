@@ -61,7 +61,7 @@ make pre-commit   # test + coverage (same as pre-commit hook)
 
 - **Vitest** — Unit tests in `tests/`: `config.test.js` (CONFIG shape, zones, monster types), `scores.test.js` (API handler + `sanitizeName`), `game-utils.test.js` (`zoneDisplayName`, `mixHex`), `html.test.js` (index structure).
 - **Coverage** — `make coverage` (v8; includes `config.js`, `api/scores.js`, `scripts/game-utils.js`). Thresholds in `vitest.config.js` (statements/branches/functions/lines) must be met or the run fails.
-- **Pre-commit** — A [husky](https://typicode.github.io/husky/) hook in `.husky/pre-commit` runs `npm run test && npm run coverage` on every commit. Install hooks with `npm install` (runs `prepare` → `husky`). To bypass (not recommended): `git commit --no-verify`.
+- **Pre-commit** — A [husky](https://typicode.github.io/husky/) hook in `.husky/pre-commit` runs `npm run test && npm run coverage` on every commit. **If the hook doesn’t run:** run `make install-hooks` (or `npx husky`) once so Git uses `.husky`; `make install` does this for you. To bypass (not recommended): `git commit --no-verify`.
 
 ## Structure
 

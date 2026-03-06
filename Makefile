@@ -2,6 +2,12 @@ PORT ?= 8044
 
 install:
 	npm install
+	$(MAKE) install-hooks
+
+# Set Git to use .husky for hooks (required for pre-commit to run). Safe to run again.
+install-hooks:
+	chmod +x .husky/pre-commit 2>/dev/null || true
+	npx husky
 
 # Run unit tests (config, API, game-utils, HTML)
 test:
@@ -26,4 +32,4 @@ server:
 deploy:
 	npm run deploy
 
-.PHONY: install test test-watch coverage pre-commit server deploy
+.PHONY: install install-hooks test test-watch coverage pre-commit server deploy

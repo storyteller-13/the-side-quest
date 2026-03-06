@@ -35,7 +35,7 @@ make coverage    # coverage report
 make pre-commit  # test + coverage (same as pre-commit hook)
 ```
 
-Tests live in `tests/` (Vitest): config shape and content, scores API (CORS, methods, no-KV behaviour, `sanitizeName`), game helpers (`zoneDisplayName`, `mixHex`), and index.html structure. A **pre-commit hook** (husky) runs tests and coverage on each commit; coverage thresholds in `vitest.config.js` must pass. Run `make pre-commit` for the same check without committing.
+Tests live in `tests/` (Vitest): config shape and content, scores API (CORS, methods, no-KV behaviour, `sanitizeName`), game helpers (`zoneDisplayName`, `mixHex`), and index.html structure. A **pre-commit hook** (husky) runs tests and coverage on each commit; coverage thresholds in `vitest.config.js` must pass. If the hook doesn’t run, run `make install-hooks` once. Run `make pre-commit` for the same check without committing.
 
 ## Project layout
 
