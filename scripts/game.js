@@ -185,6 +185,8 @@ let prince = null;
 let player = null;
 let camera = { x: 0, y: 0 };
 let screenShake = 0;
+let castlePrinceRow = 17; // set by generateMap (castle center row for prince)
+let castleRowStart = 12;  // set by generateMap (castle top row for drawing)
 
 function generateMap() {
   tilemap = [];
@@ -227,12 +229,20 @@ function generateMap() {
     if (rr >= 0 && rr < ROWS && cc >= 0 && cc < COLS) tilemap[rr][cc] = T.ROAD;
   }
 
-  // Castle and road to castle (right side of map)
+  // Castle on right side, random vertical position (top to bottom)
   const castleColStart = COLS - 8, castleColEnd = COLS;
-  const castleRowStart = 12, castleRowEnd = 22;
+  const castleHeight = 10;
+  castleRowStart = 2 + Math.floor(Math.random() * (ROWS - castleHeight - 4));
+  const castleRowEnd = castleRowStart + castleHeight;
   const roadToCastleCol = COLS - 15;
+  const castleEntranceRow = castleRowStart + Math.floor(castleHeight / 2);
+  castlePrinceRow = castleEntranceRow;
   for (let r = castleRowStart; r < castleRowEnd; r++) for (let c = castleColStart; c < castleColEnd; c++) tilemap[r][c] = T.CASTLE;
-  for (let c = roadToCastleCol; c < castleColEnd; c++) { tilemap[16][c] = T.ROAD; tilemap[17][c] = T.ROAD; tilemap[18][c] = T.ROAD; }
+  for (let c = roadToCastleCol; c < castleColEnd; c++) {
+    if (castleEntranceRow - 1 >= 0) tilemap[castleEntranceRow - 1][c] = T.ROAD;
+    tilemap[castleEntranceRow][c] = T.ROAD;
+    if (castleEntranceRow + 1 < ROWS) tilemap[castleEntranceRow + 1][c] = T.ROAD;
+  }
 
   // Connect left to right with snaking bands (never straight: jog row every 8–15 steps)
   for (let band = 0; band < 8; band++) {
@@ -267,7 +277,7 @@ function generateMap() {
   // Guarantee path from player (9,3) to castle (right side): flood-fill then carve if disconnected
   const walkable = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS && tilemap[r][c] !== T.WALL;
   const playerRow = 9, playerCol = 3;
-  const castleEntranceRow = 17, castleEntranceCol = roadToCastleCol;
+  const castleEntranceCol = roadToCastleCol;
   const reached = Array(ROWS).fill(0).map(() => Array(COLS).fill(false));
   const q = [[playerRow, playerCol]];
   reached[playerRow][playerCol] = true;
@@ -415,12 +425,11 @@ function spawnMonsters(zoneIdx) {
 }
 
 function spawnPrince() {
-  // Prince always in his castle on the right edge of the map
+  // Prince always in his castle on the right edge (castle position set by generateMap)
   const castleCenterCol = COLS - 4;
-  const castleCenterRow = 17;
   prince = {
     x: castleCenterCol * TILE,
-    y: castleCenterRow * TILE,
+    y: castlePrinceRow * TILE,
     size: 18, bobTimer: 0, reached: false,
     fleeing: false, fleeVx: 0, fleeVy: 0,
     speech: '', speechTimer: 0,
@@ -499,7 +508,7 @@ function drawTile(r, c) {
   } else if (t===T.CASTLE) {
     ctx.strokeStyle='#c084fc'; ctx.lineWidth=0.5; ctx.strokeRect(sx+1,sy+1,TILE-2,TILE-2);
     if (r%2===0&&c%2===0) { ctx.fillStyle='rgba(192,132,252,0.1)'; ctx.fillRect(sx+4,sy+4,TILE-8,TILE-8); }
-    if (r===12&&c>=COLS-8) { ctx.fillStyle='#c084fc'; for (let i=0;i<3;i++) ctx.fillRect(sx+2+i*10,sy,6,8); }
+    if (r===castleRowStart&&c>=COLS-8) { ctx.fillStyle='#c084fc'; for (let i=0;i<3;i++) ctx.fillRect(sx+2+i*10,sy,6,8); }
   }
 }
 
