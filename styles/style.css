@@ -113,32 +113,29 @@ canvas { display: block; }
 }
 #startBtn:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(255,20,147,0.8); }
 .leaderboard { margin-bottom: 20px; min-height: 60px; }
-.leaderboard-title { color: #ff69b4; font-size: 14px; letter-spacing: 3px; margin-bottom: 8px; }
-.leaderboard-list { list-style: none; counter-reset: lb; color: #c084fc; font-size: 14px; }
+.leaderboard-title { color: #ff69b4; font-size: 14px; font-weight: bold; letter-spacing: 3px; margin-bottom: 8px; }
+.leaderboard-list { list-style: none; counter-reset: lb; color: #c084fc; font-size: 14px; font-weight: bold; }
 .leaderboard-list li { counter-increment: lb; padding: 2px 0; display: flex; justify-content: space-between; gap: 24px; max-width: 280px; margin: 0 auto; }
 .leaderboard-list li::before { content: counter(lb) ". "; color: #ff69b4; }
-.lb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lb-score { color: #ff69b4; flex-shrink: 0; }
+.lb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold; }
+.lb-score { color: #ff69b4; flex-shrink: 0; font-weight: bold; }
 
 .win-save-row {
-  display: flex; flex-direction: column; align-items: center; gap: 12px;
-  margin-bottom: 16px; width: 100%; max-width: 420px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  margin-bottom: 16px; width: 100%; max-width: 520px;
 }
-.win-save-row .save-name-row {
-  display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; flex-wrap: wrap;
+.win-save-row .win-save-buttons-row {
+  display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;
 }
 .win-save-row input#saveScoreName {
   padding: 12px 18px; font-size: 16px; font-family: 'Courier New', monospace;
   background: rgba(26,0,40,0.95); border: 2px solid #ff69b4; color: #fff;
-  border-radius: 10px; width: 180px; min-width: 140px; max-width: 100%;
-  letter-spacing: 1px; flex: 1;
+  border-radius: 10px; width: 160px; min-width: 120px; max-width: 100%;
+  letter-spacing: 1px; flex-shrink: 0;
 }
 .win-save-row input#saveScoreName::placeholder { color: rgba(255,255,255,0.5); }
 .win-save-row input#saveScoreName:focus { outline: none; border-color: #c084fc; box-shadow: 0 0 14px rgba(255,105,180,0.5); }
-.win-buttons-row {
-  display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap;
-}
-.win-buttons-row .overlay-btn { flex-shrink: 0; }
+.win-save-row .overlay-btn { flex-shrink: 0; }
 .save-score-feedback { min-height: 22px; font-size: 14px; margin-top: 2px; text-align: center; }
 .save-score-feedback.success { color: #86efac; }
 .save-score-feedback.error { color: #fca5a5; }

@@ -1215,7 +1215,7 @@ function drawOverlay(title, sub, btnText, btnId) {
   const scoreLine = `<div class="overlay-score-line" style="color:#c084fc;font-size:18px;font-weight:bold;margin-bottom:20px;">${CONFIG.hud.scoreLabel} ${score.toString().padStart(6,'0')}</div>`;
   const leaderboardBlock = btnId === 'winBtn' ? `<div id="leaderboardList" class="leaderboard"></div>` : '';
   const winButtons = btnId === 'winBtn'
-    ? `<div class="win-save-row"><div class="save-name-row"><input type="text" id="saveScoreName" placeholder="${escapeHtml(CONFIG.cutscene.namePlaceholder || 'Your name')}" maxlength="32" /></div><div class="win-buttons-row"><button type="button" id="saveScoreBtn" class="overlay-btn" style="${overlayBtnStyle}">${CONFIG.cutscene.saveScore || 'SAVE SCORE'}</button><button type="button" id="${btnId}" class="overlay-btn" style="${overlayBtnStyle}">${btnText}</button></div><div id="saveScoreFeedback" class="save-score-feedback"></div></div>`
+    ? `<div class="win-save-row"><div class="win-save-buttons-row"><input type="text" id="saveScoreName" placeholder="${escapeHtml(CONFIG.cutscene.namePlaceholder || 'Your name')}" maxlength="32" /><button type="button" id="saveScoreBtn" class="overlay-btn" style="${overlayBtnStyle}">${CONFIG.cutscene.saveScore || 'SAVE SCORE'}</button><button type="button" id="${btnId}" class="overlay-btn" style="${overlayBtnStyle}">${btnText}</button></div><div id="saveScoreFeedback" class="save-score-feedback"></div></div>`
     : `<button type="button" id="${btnId}" style="${overlayBtnStyle}">${btnText}</button>`;
   ov.innerHTML=`<h1>${title}</h1><div class="subtitle">${sub}</div>${scoreLine}${leaderboardBlock}${winButtons}`;
   if (btnId === 'winBtn') {
@@ -1545,9 +1545,11 @@ document.getElementById('gameContainer').addEventListener('click', async (e) => 
       saveBtn.disabled = false;
       return;
     }
-    feedbackEl.textContent = CONFIG.cutscene.saveSuccess || 'Saved!';
-    feedbackEl.className = 'save-score-feedback success';
+    feedbackEl.textContent = '';
+    feedbackEl.className = 'save-score-feedback';
     fetchLeaderboard();
+    saveBtn.remove();
+    if (nameInput && nameInput.parentNode) nameInput.remove();
   } catch {
     feedbackEl.textContent = CONFIG.cutscene.saveFailed || 'Failed to save';
     feedbackEl.className = 'save-score-feedback error';
