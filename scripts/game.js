@@ -415,8 +415,39 @@ function spawnMonsters(zoneIdx) {
 }
 
 function spawnPrince() {
+  // Prince always on left or bottom of map, in a reachable spot (different each level)
+  const playerRow = 9, playerCol = 3;
+  const walkable = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS && tilemap[r][c] !== T.WALL;
+  const reached = Array(ROWS).fill(0).map(() => Array(COLS).fill(false));
+  const q = [[playerRow, playerCol]];
+  reached[playerRow][playerCol] = true;
+  while (q.length) {
+    const [r, c] = q.shift();
+    for (const [dr, dc] of [[0,1],[0,-1],[1,0],[-1,0]]) {
+      const rr = r + dr, cc = c + dc;
+      if (walkable(rr, cc) && !reached[rr][cc]) { reached[rr][cc] = true; q.push([rr, cc]); }
+    }
+  }
+  const minDistFromPlayer = 12;
+  const leftCells = [], bottomCells = [];
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    if (!reached[r][c]) continue;
+    const dist = Math.abs(r - playerRow) + Math.abs(c - playerCol);
+    if (dist < minDistFromPlayer) continue;
+    if (c < COLS / 4) leftCells.push([r, c]);
+    if (r >= ROWS * 3 / 4) bottomCells.push([r, c]);
+  }
+  const useLeft = Math.random() < 0.5;
+  let candidates = useLeft ? leftCells : bottomCells;
+  if (candidates.length === 0) candidates = useLeft ? bottomCells : leftCells;
+  if (candidates.length === 0) {
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++)
+      if (reached[r][c] && Math.abs(r - playerRow) + Math.abs(c - playerCol) >= minDistFromPlayer) candidates.push([r, c]);
+  }
+  const cell = candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : [17, Math.floor(COLS/4)];
+  const px = cell[1] * TILE + TILE / 2, py = cell[0] * TILE + TILE / 2;
   prince = {
-    x: (COLS - 4)*TILE, y: 17*TILE, size:18, bobTimer:0, reached:false,
+    x: px, y: py, size:18, bobTimer:0, reached:false,
     fleeing:false, fleeVx:0, fleeVy:0,
     speech:'', speechTimer:0,
     tauntTimer: 300 + Math.random()*200,

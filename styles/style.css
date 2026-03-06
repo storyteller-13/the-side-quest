@@ -45,8 +45,19 @@ canvas { display: block; }
 #overlay.death-screen h1 { font-size: 72px; }
 #overlay .subtitle { color: #c084fc; font-size: 26px; font-weight: bold; letter-spacing: 4px; margin-bottom: 40px; text-align: center; }
 #overlay.death-screen .subtitle { font-size: 20px; }
-#overlay .controls { color: #aaa; font-size: 12px; line-height: 2; text-align: center; margin-bottom: 30px; border: 1px solid #ff69b4; padding: 16px 32px; border-radius: 12px; }
-#overlay .controls span { color: #ff69b4; }
+#overlay .controls {
+  color: #ccc;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 2;
+  text-align: center;
+  margin-bottom: 30px;
+  border: 1px solid #ff69b4;
+  padding: 16px 32px;
+  border-radius: 12px;
+}
+#overlay .controls span { color: #ff69b4; font-weight: 700; }
 #startBtn {
   background: linear-gradient(135deg, #ff1493, #c084fc); border: none; color: white;
   padding: 14px 48px; font-size: 18px; font-weight: bold; font-family: 'Courier New', monospace;
