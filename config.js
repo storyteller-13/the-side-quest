@@ -45,7 +45,7 @@ window.CONFIG = {
   // Cutscene
   cutscene: {
     finally: 'FINALLY...',
-    trueLove: 'TRUE LOVE! ♥',
+    trueLove: 'YOU KISSED THE PRINCE! ♥',
     winSubtitle: 'he finally didn\'t run away!<br>those 7 levels were worth it...',
     playAgain: 'PLAY AGAIN',
     saveScore: 'SAVE SCORE',
@@ -80,7 +80,7 @@ window.CONFIG = {
     { name: 'THE GHOST ISLAND IN MALAYSIA',     bg: '#1a0800', mapEmoji: ['🇲🇾', '🐍', '👻'], monsterCount: 104, monsterSpeed: 1.8, fleeSpeed: 14,
       excuse: "MY MOM IS CALLING!",
       taunts: ["I'M NOT READY FOR COMMITMENT!"] },
-    { name: 'THE FINAL FORTRESS IN DENVER', bg: '#08081a', mapEmoji: ['🏔️', '💍', '👽'], monsterCount: 120, monsterSpeed: 2.0, fleeSpeed: 16,
+    { name: 'THE FINAL FORTRESS IN DENVER', bg: '#08081a', mapEmoji: ['🏔️', '🎸', '👽'], monsterCount: 120, monsterSpeed: 2.0, fleeSpeed: 16,
       excuse: "I AM SCARED!",
       taunts: ["MAYBE IN ANOTHER LIFE!"] },
     { name: 'THE SECRET ROSE GARDEN',    bg: '#1a0512', mapEmoji: ['👩🏻‍❤️‍💋‍👨🏻', '🤖', '🌹'], monsterCount: 140, monsterSpeed: 2.2, fleeSpeed: 0,
