@@ -1193,9 +1193,7 @@ function drawOverlay(title, sub, btnText, btnId) {
   ov.classList.toggle('death-screen', btnId === 'retryBtn');
   const scoreLine = `<div style="color:#c084fc;font-size:18px;font-weight:bold;margin-bottom:24px;">${CONFIG.hud.scoreLabel} ${score.toString().padStart(6,'0')}</div>`;
   const leaderboardBlock = btnId === 'winBtn' ? `<div id="leaderboardList" class="leaderboard"></div>` : '';
-  const winButtons = btnId === 'winBtn'
-    ? `<div class="overlay-buttons"><button id="${btnId}" style="${overlayBtnStyle}">${btnText}</button><button id="saveScoreBtn" style="${overlayBtnStyle}">${CONFIG.cutscene.saveScore}</button></div>`
-    : `<button id="${btnId}" style="${overlayBtnStyle}">${btnText}</button>`;
+  const winButtons = `<button id="${btnId}" style="${overlayBtnStyle}">${btnText}</button>`;
   ov.innerHTML=`<h1>${title}</h1><div class="subtitle">${sub}</div>${scoreLine}${leaderboardBlock}${winButtons}`;
   if (btnId === 'winBtn') fetchLeaderboard();
   if (btnId === 'winBtn') {
@@ -1502,8 +1500,6 @@ function gameLoop() {
     if (cutsceneTimer===300) {
       drawOverlay(CONFIG.cutscene.trueLove, CONFIG.cutscene.winSubtitle, CONFIG.cutscene.playAgain, 'winBtn');
       document.getElementById('winBtn').addEventListener('click', startGame);
-      const saveBtn = document.getElementById('saveScoreBtn');
-      if (saveBtn) saveBtn.addEventListener('click', saveScore);
       state='winScreen';
     }
     drawMinimap();
@@ -1518,8 +1514,6 @@ function gameLoop() {
     if (!document.getElementById('winBtn')) {
       drawOverlay(CONFIG.cutscene.trueLove, CONFIG.cutscene.winSubtitle, CONFIG.cutscene.playAgain, 'winBtn');
       document.getElementById('winBtn').addEventListener('click', startGame);
-      const saveBtn = document.getElementById('saveScoreBtn');
-      if (saveBtn) saveBtn.addEventListener('click', saveScore);
     }
     updateAndDrawWinFloaters();
     render();
