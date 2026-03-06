@@ -826,8 +826,12 @@ function updatePlayer(p) {
   if (dx||dy) {
     const len=Math.sqrt(dx*dx+dy*dy);
     const nx=(dx/len)*p.speed, ny=(dy/len)*p.speed;
-    if (isWalkable(p.x+nx,p.y,10)) p.x+=nx;
-    if (isWalkable(p.x,p.y+ny,10)) p.y+=ny;
+    // Horizontal wrap (old-school): try normal move, then wrap to other side if there's path
+    let nextX = p.x + nx;
+    if (nextX >= COLS * TILE) nextX -= COLS * TILE;
+    else if (nextX < 0) nextX += COLS * TILE;
+    if (isWalkable(nextX, p.y, 10)) p.x = nextX;
+    if (isWalkable(p.x, p.y + ny, 10)) p.y += ny;
   }
   if (p.attackTimer>0) p.attackTimer--;
   if (p.invincible>0) p.invincible--;
