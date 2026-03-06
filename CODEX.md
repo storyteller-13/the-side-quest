@@ -27,10 +27,22 @@ make dev      # runs via Vercel dev
 npm audit --omit=dev
 ```
 
+## Tests
+
+```bash
+make test        # run unit tests
+make coverage    # coverage report
+make pre-commit  # test + coverage (same as pre-commit hook)
+```
+
+Tests live in `tests/` (Vitest): config shape and content, scores API (CORS, methods, no-KV behaviour, `sanitizeName`), game helpers (`zoneDisplayName`, `mixHex`), and index.html structure. A **pre-commit hook** (husky) runs tests and coverage on each commit; coverage thresholds in `vitest.config.js` must pass. If the hook doesn’t run, run `make install-hooks` once. Run `make pre-commit` for the same check without committing.
+
 ## Project layout
 
 - `index.html` — app shell and script/style includes.
 - `styles/global.css` — game and UI styling.
 - `config.js` — user-facing text/config.
 - `scripts/game.js` — gameplay loop and rendering.
+- `scripts/game-utils.js` — pure helpers (mixHex, zoneDisplayName).
 - `api/scores.js` — serverless leaderboard API.
+- `tests/` — Vitest unit tests.

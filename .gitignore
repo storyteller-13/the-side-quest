@@ -10,6 +10,12 @@ node_modules
 .env*.local
 !.env.example
 
+# Test coverage (Vitest)
+coverage
+
+# Husky (hooks generated locally; run make install-hooks)
+.husky
+
 # OS
 .DS_Store
 .DS_*

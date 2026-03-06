@@ -7,7 +7,7 @@ function hasKvEnv() {
   return (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) || process.env.REDIS_URL;
 }
 
-function sanitizeName(name) {
+export function sanitizeName(name) {
   if (typeof name !== 'string') return DEFAULT_NAME;
   const t = name.trim().slice(0, NAME_MAX_LEN);
   return t || DEFAULT_NAME;

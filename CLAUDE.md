@@ -50,9 +50,23 @@ Top-down GTA-style action game. The princess fights monsters to reach the prince
 - Deploy: `make deploy` or `npm run deploy` (uses Vercel CLI from `package.json` devDependencies).
 - Local: `make server` has no API; use `make dev` (or `vercel dev`) and `vercel env pull` once to test scores locally.
 
+## Tests
+
+```bash
+make test         # run once
+make test-watch   # watch mode
+make coverage     # coverage report
+make pre-commit   # test + coverage (same as pre-commit hook)
+```
+
+- **Vitest** — Unit tests in `tests/`: `config.test.js` (CONFIG shape, zones, monster types), `scores.test.js` (API handler + `sanitizeName`), `game-utils.test.js` (`zoneDisplayName`, `mixHex`), `html.test.js` (index structure).
+- **Coverage** — `make coverage` (v8; includes `config.js`, `api/scores.js`, `scripts/game-utils.js`). Thresholds in `vitest.config.js` (statements/branches/functions/lines) must be met or the run fails.
+- **Pre-commit** — A [husky](https://typicode.github.io/husky/) hook in `.husky/pre-commit` runs `npm run test && npm run coverage` on every commit. **If the hook doesn’t run:** run `make install-hooks` (or `npx husky`) once so Git uses `.husky`; `make install` does this for you. To bypass (not recommended): `git commit --no-verify`.
+
 ## Structure
 
 - `index.html` — Markup only; links to CSS, config, and script
 - `styles/global.css` — All styles
 - `config.js` — All user-facing text and content (zones, monster types, UI strings)
 - `scripts/game.js` — Game logic: constants, audio, canvas, entities, rendering, game loop
+- `scripts/game-utils.js` — Pure helpers used by game (e.g. `zoneDisplayName`, `mixHex`)
