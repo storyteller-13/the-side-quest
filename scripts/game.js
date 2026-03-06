@@ -99,11 +99,17 @@ const minimapCanvas = document.getElementById('minimap');
 const mctx = minimapCanvas.getContext('2d');
 
 function resizeCanvas() {
-  W = window.innerWidth; H = window.innerHeight;
+  const vv = window.visualViewport;
+  W = (vv && vv.width) ? vv.width : window.innerWidth;
+  H = (vv && vv.height) ? vv.height : window.innerHeight;
   canvas.width = W; canvas.height = H;
 }
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', resizeCanvas);
+  window.visualViewport.addEventListener('scroll', resizeCanvas);
+}
 
 // ─── Init text from config ────────────────────────────────────────────────────
 function zoneDisplayName(name) {
@@ -127,6 +133,10 @@ function initTextFromConfig() {
   const controlsEl = document.getElementById('overlayControls');
   controlsEl.innerHTML = CONFIG.controls.map(c => `<span>${c.keys}</span> — ${c.action}<br>`).join('');
   document.getElementById('startBtn').textContent = CONFIG.startButton;
+  const boomBtn = document.getElementById('boomBtn');
+  if (boomBtn && ('ontouchstart' in window || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0))) {
+    boomBtn.classList.add('visible');
+  }
 }
 initTextFromConfig();
 
@@ -181,20 +191,36 @@ document.addEventListener('keydown', e => {
   e.preventDefault();
 });
 document.addEventListener('keyup',   e => { if (!isTypingTarget()) keys[e.code] = false; });
-canvas.addEventListener('mousemove', e => {
+
+function setMouseFromPointer(e) {
   const r = canvas.getBoundingClientRect();
   mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top;
-});
-canvas.addEventListener('mousedown', e => {
-  if (e.button === 0) mouse.left = true;
-  if (e.button === 2) mouse.right = true;
+}
+function setMouseButtons(down, button) {
+  if (button === 0) mouse.left = down;
+  if (button === 2) mouse.right = down;
+}
+canvas.addEventListener('pointermove', e => { setMouseFromPointer(e); });
+canvas.addEventListener('pointerdown', e => {
+  setMouseFromPointer(e);
+  setMouseButtons(true, e.button);
   e.preventDefault();
 });
-canvas.addEventListener('mouseup', e => {
-  if (e.button === 0) mouse.left = false;
-  if (e.button === 2) mouse.right = false;
+canvas.addEventListener('pointerup', e => {
+  setMouseButtons(false, e.button);
+});
+canvas.addEventListener('pointerleave', e => {
+  setMouseButtons(false, e.button);
 });
 canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+const boomBtn = document.getElementById('boomBtn');
+if (boomBtn) {
+  boomBtn.addEventListener('pointerdown', e => { mouse.right = true; e.preventDefault(); });
+  boomBtn.addEventListener('pointerup', () => { mouse.right = false; });
+  boomBtn.addEventListener('pointerleave', () => { mouse.right = false; });
+  boomBtn.addEventListener('pointercancel', () => { mouse.right = false; });
+}
 
 // ─── World ───────────────────────────────────────────────────────────────────
 let tilemap = [];
@@ -1209,21 +1235,45 @@ function render() {
 }
 
 const overlayBtnStyle = 'background:linear-gradient(135deg,#ff1493,#c084fc);border:none;color:white;padding:14px 48px;font-size:18px;font-weight:bold;font-family:\'Courier New\',monospace;letter-spacing:3px;cursor:pointer;text-transform:uppercase;border-radius:12px;box-shadow:0 0 20px rgba(255,20,147,0.5);pointer-events:all;';
-function drawOverlay(title, sub, btnText, btnId) {
+function drawOverlay(title, sub, btnText, btnId, showSaveRow, leaderboardList) {
   const ov=document.getElementById('overlay');
   ov.classList.toggle('death-screen', btnId === 'retryBtn');
   const scoreLine = `<div class="overlay-score-line" style="color:#c084fc;font-size:18px;font-weight:bold;margin-bottom:20px;">${CONFIG.hud.scoreLabel} ${score.toString().padStart(6,'0')}</div>`;
   const leaderboardBlock = btnId === 'winBtn' ? `<div id="leaderboardList" class="leaderboard"></div>` : '';
   const winButtons = btnId === 'winBtn'
-    ? `<div class="win-save-row"><div class="win-save-buttons-row"><input type="text" id="saveScoreName" placeholder="${escapeHtml(CONFIG.cutscene.namePlaceholder || 'Your name')}" maxlength="32" /><button type="button" id="saveScoreBtn" class="overlay-btn" style="${overlayBtnStyle}">${CONFIG.cutscene.saveScore || 'SAVE SCORE'}</button><button type="button" id="${btnId}" class="overlay-btn" style="${overlayBtnStyle}">${btnText}</button></div><div id="saveScoreFeedback" class="save-score-feedback"></div></div>`
+    ? (showSaveRow
+        ? `<div class="win-save-row"><div class="win-save-buttons-row"><input type="text" id="saveScoreName" placeholder="${escapeHtml(CONFIG.cutscene.namePlaceholder || 'Your name')}" maxlength="32" /><button type="button" id="saveScoreBtn" class="overlay-btn" style="${overlayBtnStyle}">${CONFIG.cutscene.saveScore || 'SAVE SCORE'}</button><button type="button" id="${btnId}" class="overlay-btn" style="${overlayBtnStyle}">${btnText}</button></div><div id="saveScoreFeedback" class="save-score-feedback"></div></div>`
+        : `<div class="win-save-row"><div class="win-save-buttons-row"><button type="button" id="${btnId}" class="overlay-btn" style="${overlayBtnStyle}">${btnText}</button></div></div>`)
     : `<button type="button" id="${btnId}" style="${overlayBtnStyle}">${btnText}</button>`;
   ov.innerHTML=`<h1>${title}</h1><div class="subtitle">${sub}</div>${scoreLine}${leaderboardBlock}${winButtons}`;
   if (btnId === 'winBtn') {
-    fetchLeaderboard();
+    if (Array.isArray(leaderboardList) && leaderboardList.length > 0) {
+      const el = document.getElementById('leaderboardList');
+      if (el) el.innerHTML = `<div class="leaderboard-title">${CONFIG.cutscene.leaderboardTitle}</div><ol class="leaderboard-list">${leaderboardList.map((e, i) => `<li><span class="lb-name">${escapeHtml(e.name)}</span><span class="lb-score">${Number(e.score).toLocaleString()}</span></li>`).join('')}</ol>`;
+    } else {
+      fetchLeaderboard();
+    }
     ensureWinFloatersCanvas();
     winFloaters = [];
   }
   ov.style.display='flex';
+}
+
+async function showWinOverlay() {
+  let showSaveRow = false;
+  let list = [];
+  try {
+    const res = await fetch('/api/scores');
+    const data = await res.json().catch(() => ({}));
+    list = data.scores || [];
+    const tenthScore = list.length >= 10 ? Number(list[9].score) : -1;
+    showSaveRow = list.length < 10 || score > tenthScore;
+  } catch {
+    showSaveRow = false;
+  }
+  drawOverlay(CONFIG.cutscene.trueLove, CONFIG.cutscene.winSubtitle, CONFIG.cutscene.playAgain, 'winBtn', showSaveRow, list);
+  document.getElementById('winBtn').addEventListener('click', startGame);
+  state = 'winScreen';
 }
 
 async function fetchLeaderboard() {
@@ -1256,7 +1306,7 @@ function ensureWinFloatersCanvas() {
   if (winFloatersCanvas && winFloatersCanvas.parentNode) return;
   winFloatersCanvas = document.createElement('canvas');
   winFloatersCanvas.id = 'winFloatersCanvas';
-  winFloatersCanvas.style.cssText = 'position:absolute;inset:0;z-index:10;pointer-events:none';
+  winFloatersCanvas.className = 'win-floaters-canvas';
   document.getElementById('gameContainer').appendChild(winFloatersCanvas);
 }
 
@@ -1268,7 +1318,6 @@ function updateAndDrawWinFloaters() {
     winFloatersCanvas.width = cw;
     winFloatersCanvas.height = ch;
   }
-  winFloatersCanvas.style.display = 'block';
   if (frameCount % 2 === 0) {
     const chars = ['♥', '💀'];
     for (let i = 0; i < 2; i++) {
@@ -1484,9 +1533,7 @@ function gameLoop() {
       ctx.restore();
     }
     if (cutsceneTimer===300) {
-      drawOverlay(CONFIG.cutscene.trueLove, CONFIG.cutscene.winSubtitle, CONFIG.cutscene.playAgain, 'winBtn');
-      document.getElementById('winBtn').addEventListener('click', startGame);
-      state='winScreen';
+      showWinOverlay();
     }
     drawMinimap();
 
@@ -1498,8 +1545,7 @@ function gameLoop() {
   } else if (state==='winScreen') {
     document.getElementById('overlay').style.display = 'flex';
     if (!document.getElementById('winBtn')) {
-      drawOverlay(CONFIG.cutscene.trueLove, CONFIG.cutscene.winSubtitle, CONFIG.cutscene.playAgain, 'winBtn');
-      document.getElementById('winBtn').addEventListener('click', startGame);
+      showWinOverlay();
     }
     updateAndDrawWinFloaters();
     render();
