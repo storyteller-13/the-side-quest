@@ -2,7 +2,7 @@
 let W = window.innerWidth, H = window.innerHeight;
 const TILE = 32;
 const COLS = 160, ROWS = 112;
-const T = { ROAD: 0, WALL: 1, GRASS: 2, PARK: 3, ROSE: 4, HEART_TILE: 5, CASTLE: 6 };
+const T = { ROAD: 0, WALL: 1, GRASS: 2, PARK: 3, HEART_TILE: 4, CASTLE: 5 };
 
 // ─── Audio ───────────────────────────────────────────────────────────────────
 let audioCtx = null;
@@ -526,7 +526,7 @@ function worldToScreen(wx, wy) {
 const tileColors = {
   [T.ROAD]:  ['#1a1a1a','#2d2d2d'], [T.WALL]:  ['#1a0028','#150020'],
   [T.GRASS]: ['#1a2e1a','#162614'], [T.PARK]:  ['#0f2010','#0c1a0c'],
-  [T.ROSE]:  ['#2d0a1a','#200812'], [T.CASTLE]:['#2a1a3a','#1e1228'],
+  [T.CASTLE]:['#2a1a3a','#1e1228'],
 };
 function mixHex(hex1, hex2, t) {
   const parse = (h) => ({ r: parseInt(h.slice(1,3),16), g: parseInt(h.slice(3,5),16), b: parseInt(h.slice(5,7),16) });
@@ -546,11 +546,7 @@ function drawTile(r, c) {
     : [mixHex(baseColors[0], zoneBg, 0.35), mixHex(baseColors[1], zoneBg, 0.35)];
   ctx.fillStyle = colors[(r+c)%2];
   ctx.fillRect(sx, sy, TILE, TILE);
-  if (t===T.ROSE) {
-    ctx.fillStyle='#ff1493'; ctx.beginPath(); ctx.arc(sx+TILE/2,sy+TILE/2,5,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle='#2d5a1b'; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(sx+TILE/2,sy+TILE/2+5); ctx.lineTo(sx+TILE/2,sy+TILE-4); ctx.stroke();
-  } else if (t===T.CASTLE) {
+  if (t===T.CASTLE) {
     ctx.strokeStyle='#c084fc'; ctx.lineWidth=0.5; ctx.strokeRect(sx+1,sy+1,TILE-2,TILE-2);
     if (r%2===0&&c%2===0) { ctx.fillStyle='rgba(192,132,252,0.1)'; ctx.fillRect(sx+4,sy+4,TILE-8,TILE-8); }
     if (r===castleRowStart&&c>=COLS-8) { ctx.fillStyle='#c084fc'; for (let i=0;i<3;i++) ctx.fillRect(sx+2+i*10,sy,6,8); }
@@ -570,7 +566,7 @@ function drawWallBlocks(sc, sr, ec, er) {
     ctx.fillRect(sx, sy, bw, bh);
     ctx.strokeStyle = '#2a1040'; ctx.lineWidth = 0.5;
     ctx.strokeRect(sx + 2, sy + 2, bw - 4, bh - 4);
-    if ((b.r * 7 + b.c * 13) % 17 < 3) {
+    if ((b.r * 7 + b.c * 13) % 17 < 9) {
       ctx.fillStyle = 'rgba(255,200,100,0.15)';
       ctx.fillRect(sx + 8, sy + 6, 6, 8); ctx.fillRect(sx + bw/2 - 3, sy + 6, 6, 8);
       // Scale emoji to fit inside block so it's never cut (compound emojis can be ~2x wide)
