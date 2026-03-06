@@ -38,7 +38,8 @@ window.CONFIG = {
     paused: 'PAUSED',
     pressResume: 'press esc or click resume',
     boom: 'BOOM! x3',
-    heartPickup: '+HEART'
+    heartPickup: '+HEART',
+    fullHealth: 'FULL HEALTH!'
   },
 
   // Cutscene

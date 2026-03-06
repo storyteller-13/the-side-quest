@@ -181,6 +181,7 @@ let projectiles = [];
 let particles = [];
 let roses = [];
 let shockwaves = [];
+let healthHearts = [];
 let prince = null;
 let player = null;
 let camera = { x: 0, y: 0 };
@@ -243,6 +244,22 @@ function generateMap() {
     tilemap[castleEntranceRow][c] = T.ROAD;
     if (castleEntranceRow + 1 < ROWS) tilemap[castleEntranceRow + 1][c] = T.ROAD;
   }
+
+  // Always carve a guaranteed path from player spawn to castle entrance (2-wide corridor)
+  const setPath = (rr, cc) => {
+    if (rr >= 0 && rr < ROWS && cc >= 0 && cc < COLS) {
+      tilemap[rr][cc] = T.ROAD;
+      if (cc + 1 < COLS) tilemap[rr][cc + 1] = T.ROAD;
+    }
+  };
+  const playerRowGuarantee = 9, playerColGuarantee = 3;
+  let gr = playerRowGuarantee, gc = playerColGuarantee;
+  const midCol = Math.min(roadToCastleCol - 2, 20 + Math.floor(Math.random() * Math.max(1, roadToCastleCol - 40)));
+  for (let cc = gc; cc <= midCol; cc++) { setPath(gr, cc); setPath(gr + 1, cc); }
+  gc = midCol;
+  for (let rr = Math.min(gr, castleEntranceRow); rr <= Math.max(gr, castleEntranceRow); rr++) { setPath(rr, gc); setPath(rr + 1, gc); }
+  gr = castleEntranceRow;
+  for (let cc = gc; cc <= roadToCastleCol; cc++) { setPath(gr, cc); setPath(gr + 1, cc); }
 
   // Connect left to right with snaking bands (never straight: jog row every 8–15 steps)
   for (let band = 0; band < 8; band++) {
@@ -435,6 +452,37 @@ function spawnPrince() {
     speech: '', speechTimer: 0,
     tauntTimer: 300 + Math.random() * 200,
   };
+}
+
+function spawnHealthHearts() {
+  healthHearts = [];
+  const walkable = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS && tilemap[r][c] !== T.WALL;
+  const playerRow = 9, playerCol = 3;
+  const reached = Array(ROWS).fill(0).map(() => Array(COLS).fill(false));
+  const q = [[playerRow, playerCol]];
+  reached[playerRow][playerCol] = true;
+  while (q.length) {
+    const [r, c] = q.shift();
+    for (const [dr, dc] of [[0,1],[0,-1],[1,0],[-1,0]]) {
+      const rr = r + dr, cc = c + dc;
+      if (walkable(rr, cc) && !reached[rr][cc]) { reached[rr][cc] = true; q.push([rr, cc]); }
+    }
+  }
+  const pathCells = [];
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    if (!reached[r][c]) continue;
+    const tile = tilemap[r][c];
+    if (tile !== T.ROAD && tile !== T.CASTLE) continue; // only on path, never in blocks/decor
+    const distFromSpawn = Math.abs(r - playerRow) + Math.abs(c - playerCol);
+    if (distFromSpawn < 8) continue; // not right at spawn
+    pathCells.push([r, c]);
+  }
+  const count = Math.min(10 + Math.floor(Math.random() * 8), pathCells.length);
+  for (let i = 0; i < count && pathCells.length > 0; i++) {
+    const idx = Math.floor(Math.random() * pathCells.length);
+    const [r, c] = pathCells.splice(idx, 1)[0];
+    healthHearts.push({ x: c * TILE + TILE / 2, y: r * TILE + TILE / 2 });
+  }
 }
 
 // ─── Particles ───────────────────────────────────────────────────────────────
@@ -662,6 +710,18 @@ function drawMonster(m) {
       ctx.beginPath(); ctx.arc(startX+i*8,sy+m.size+10,3.5,0,Math.PI*2); ctx.fill();
     }
   }
+}
+
+// ─── Draw health heart pickup ───────────────────────────────────────────────
+function drawHealthHeart(sx, sy) {
+  const bob = Math.sin(frameCount * 0.08) * 2;
+  ctx.save();
+  ctx.translate(sx, sy + bob);
+  ctx.font = '24px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('🖤', 0, 0);
+  ctx.restore();
 }
 
 // ─── Draw Prince ─────────────────────────────────────────────────────────────
@@ -930,6 +990,23 @@ function updateFloatingTexts() {
     if (ft.life<=0) floatingTexts.splice(i,1);
   }
 }
+
+function updateHealthHearts() {
+  if (player.dead) return;
+  const pickupRadius = 24;
+  for (let i = healthHearts.length - 1; i >= 0; i--) {
+    const h = healthHearts[i];
+    const dx = player.x - h.x, dy = player.y - h.y;
+    if (dx * dx + dy * dy < pickupRadius * pickupRadius) {
+      player.hp = player.maxHp;
+      showFloatingText(h.x, h.y - 16, CONFIG.messages.fullHealth, '#ff69b4');
+      spawnParticles(h.x, h.y, '#ff69b4', 12, 4);
+      spawnParticles(h.x, h.y, '#ff1493', 8, 3);
+      healthHearts.splice(i, 1);
+    }
+  }
+}
+
 function updateCamera() {
   let tx, ty;
   if (prince && prince.fleeing && prince.speechTimer > 0) {
@@ -1008,6 +1085,8 @@ function drawMinimap() {
   }
   mctx.fillStyle='#ff4444';
   for (const m of monsters) if (!m.dead) { mctx.beginPath(); mctx.arc(m.x*sx,m.y*sy,2,0,Math.PI*2); mctx.fill(); }
+  mctx.fillStyle='#000000';
+  for (const h of healthHearts) { mctx.beginPath(); mctx.arc(h.x*sx,h.y*sy,1.5,0,Math.PI*2); mctx.fill(); }
   if (prince) {
     const pulse = 0.75 + 0.25 * (1 + Math.sin(frameCount * 0.12));
     const px = prince.x * sx, py = prince.y * sy;
@@ -1054,6 +1133,11 @@ function render() {
     const [rsx,rsy]=worldToScreen(rose.x,rose.y);
     ctx.fillStyle='#ff1493'; ctx.globalAlpha=rose.life/180;
     ctx.beginPath(); ctx.arc(rsx,rsy,5,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
+  }
+  for (const h of healthHearts) {
+    const [hx, hy] = worldToScreen(h.x, h.y);
+    if (hx < -20 || hx > W + 20 || hy < -20 || hy > H + 20) continue;
+    drawHealthHeart(hx, hy);
   }
   for (const sw of shockwaves) {
     if (sw.delay>0) continue;
@@ -1244,7 +1328,7 @@ function initZone(zoneIdx) {
   player=createPlayer(); projectiles=[]; particles=[]; roses=[]; shockwaves=[];
   floatingTexts.length=0; camera={x:0,y:0}; zoneTransitionTimer=0;
   loveMeter=0; loveSoundPlayed=false;
-  spawnMonsters(zoneIdx); spawnPrince();
+  spawnMonsters(zoneIdx); spawnPrince(); spawnHealthHearts();
 }
 
 function startGame() {
@@ -1267,7 +1351,7 @@ function gameLoop() {
     if (!paused) {
       updatePlayer(player);
       for (const m of monsters) updateMonster(m);
-      updateProjectiles(); updateParticles(); updateFloatingTexts();
+      updateProjectiles(); updateParticles(); updateFloatingTexts(); updateHealthHearts();
       updateCamera(); updatePrince(); checkWin();
     for (let i=roses.length-1;i>=0;i--) { roses[i].life--; if (roses[i].life<=0) roses.splice(i,1); }
     if (screenShake>0) screenShake=Math.max(0,screenShake-1.2);
