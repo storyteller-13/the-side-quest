@@ -420,13 +420,35 @@ function drawMonster(m) {
   ctx.save(); ctx.translate(sx,sy); ctx.rotate(m.facing);
   ctx.fillStyle='rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(0,m.size+2,m.size*0.8,4,0,0,Math.PI*2); ctx.fill();
   ctx.fillStyle=m.color; ctx.beginPath(); ctx.arc(0,0,m.size,0,Math.PI*2); ctx.fill();
+  // Horns
+  const hornColor = 'rgba(40,20,20,0.9)';
+  ctx.fillStyle = hornColor; ctx.strokeStyle = '#1a0a0a'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(-m.size*0.55, -m.size*0.75);
+  ctx.quadraticCurveTo(-m.size*0.9, -m.size*1.4, -m.size*0.5, -m.size*0.5);
+  ctx.lineTo(-m.size*0.45, -m.size*0.7);
+  ctx.quadraticCurveTo(-m.size*0.7, -m.size*1.1, -m.size*0.55, -m.size*0.75);
+  ctx.fill(); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(m.size*0.55, -m.size*0.75);
+  ctx.quadraticCurveTo(m.size*0.9, -m.size*1.4, m.size*0.5, -m.size*0.5);
+  ctx.lineTo(m.size*0.45, -m.size*0.7);
+  ctx.quadraticCurveTo(m.size*0.7, -m.size*1.1, m.size*0.55, -m.size*0.75);
+  ctx.fill(); ctx.stroke();
   ctx.fillStyle='rgba(0,0,0,0.2)'; ctx.beginPath(); ctx.arc(-m.size*0.3,-m.size*0.2,m.size*0.4,0,0,Math.PI*2); ctx.fill();
   ctx.fillStyle=m.eyeColor; ctx.beginPath(); ctx.arc(-m.size*0.35,-m.size*0.2,m.size*0.2,0,Math.PI*2); ctx.arc(m.size*0.35,-m.size*0.2,m.size*0.2,0,Math.PI*2); ctx.fill();
   ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(-m.size*0.35,-m.size*0.2,m.size*0.08,0,Math.PI*2); ctx.arc(m.size*0.35,-m.size*0.2,m.size*0.08,0,Math.PI*2); ctx.fill();
-  ctx.strokeStyle=m.alertTimer>0?'#ff0000':'#000'; ctx.lineWidth=2;
+  // Angry eyebrows (mean face)
+  ctx.strokeStyle = m.alertTimer>0 ? '#ff0000' : '#1a0a0a'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
   ctx.beginPath();
-  if (m.alertTimer>0) { ctx.moveTo(-m.size*0.4,m.size*0.3); ctx.lineTo(m.size*0.4,m.size*0.3); }
-  else ctx.arc(0,m.size*0.1,m.size*0.3,0.1,Math.PI-0.1);
+  ctx.moveTo(-m.size*0.55, -m.size*0.38); ctx.lineTo(-m.size*0.15, -m.size*0.28);
+  ctx.moveTo(m.size*0.15, -m.size*0.28); ctx.lineTo(m.size*0.55, -m.size*0.38);
+  ctx.stroke();
+  // Mouth: frown by default, snarl when alert
+  ctx.strokeStyle = m.alertTimer>0 ? '#ff0000' : '#1a0a0a'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  if (m.alertTimer>0) { ctx.moveTo(-m.size*0.4,m.size*0.25); ctx.lineTo(m.size*0.4,m.size*0.25); ctx.moveTo(-m.size*0.2,m.size*0.35); ctx.lineTo(m.size*0.2,m.size*0.35); }
+  else ctx.arc(0, m.size*0.35, m.size*0.25, Math.PI+0.15, -0.15);
   ctx.stroke();
   if (m.hitFlash>0) { ctx.fillStyle=`rgba(255,255,255,${m.hitFlash/8*0.6})`; ctx.beginPath(); ctx.arc(0,0,m.size,0,Math.PI*2); ctx.fill(); m.hitFlash--; }
   ctx.restore();
