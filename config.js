@@ -48,6 +48,8 @@ const CONFIG = {
     trueLove: 'TRUE LOVE! ♥',
     winSubtitle: 'he finally didn\'t run away!<br>those 7 levels were worth it...',
     playAgain: 'PLAY AGAIN',
+    supportWork: 'SUPPORT MY WORK',
+    supportWorkUrl: 'https://donationvonsteinkirchcom.vercel.app/',
     saveScore: 'SAVE SCORE',
     namePlaceholder: 'your name',
     saveSuccess: 'saved!',

@@ -31,6 +31,10 @@ pre-commit:
 server:
 	vercel dev --listen $(PORT)
 
+local:
+	@echo "Serving at http://localhost:$(PORT)"
+	@python3 -m http.server $(PORT)
+
 deploy:
 	npm run deploy
 
@@ -38,4 +42,4 @@ deploy:
 clean:
 	rm -rf coverage .cache dist build
 
-.PHONY: install install-hooks test test-watch coverage pre-commit server deploy clean
+.PHONY: install install-hooks test test-watch coverage pre-commit server deploy clean local

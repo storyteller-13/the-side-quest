@@ -1234,10 +1234,12 @@ function drawOverlay(title, sub, btnText, btnId, showSaveRow, leaderboardList) {
   ov.classList.toggle('death-screen', btnId === 'retryBtn');
   const scoreLine = `<div class="overlay-score-line" style="color:#c084fc;font-size:18px;font-weight:bold;margin-bottom:20px;">${CONFIG.hud.scoreLabel} ${score.toString().padStart(6,'0')}</div>`;
   const leaderboardBlock = btnId === 'winBtn' ? `<div id="leaderboardList" class="leaderboard"></div>` : '';
+  const supportLink = btnId === 'winBtn' ? `<a href="${escapeHtml(CONFIG.cutscene.supportWorkUrl || '')}" target="_blank" rel="noopener noreferrer" class="overlay-btn overlay-btn-link" style="${overlayBtnStyle}">${CONFIG.cutscene.supportWork || 'SUPPORT MY WORK'}</a>` : '';
+  const playAgainAndSupport = btnId === 'winBtn' ? `<div class="win-end-buttons"><button type="button" id="${btnId}" class="overlay-btn" style="${overlayBtnStyle}">${btnText}</button>${supportLink}</div>` : '';
   const winButtons = btnId === 'winBtn'
     ? (showSaveRow
-        ? `<div class="win-save-row"><div class="win-save-buttons-row"><input type="text" id="saveScoreName" placeholder="${escapeHtml(CONFIG.cutscene.namePlaceholder || 'Your name')}" maxlength="32" /><button type="button" id="saveScoreBtn" class="overlay-btn" style="${overlayBtnStyle}">${CONFIG.cutscene.saveScore || 'SAVE SCORE'}</button><button type="button" id="${btnId}" class="overlay-btn" style="${overlayBtnStyle}">${btnText}</button></div><div id="saveScoreFeedback" class="save-score-feedback"></div></div>`
-        : `<div class="win-save-row"><div class="win-save-buttons-row"><button type="button" id="${btnId}" class="overlay-btn" style="${overlayBtnStyle}">${btnText}</button></div></div>`)
+        ? `<div class="win-save-row"><div class="win-save-buttons-row"><input type="text" id="saveScoreName" placeholder="${escapeHtml(CONFIG.cutscene.namePlaceholder || 'Your name')}" maxlength="32" /><button type="button" id="saveScoreBtn" class="overlay-btn" style="${overlayBtnStyle}">${CONFIG.cutscene.saveScore || 'SAVE SCORE'}</button>${playAgainAndSupport}</div><div id="saveScoreFeedback" class="save-score-feedback"></div></div>`
+        : `<div class="win-save-row"><div class="win-save-buttons-row">${playAgainAndSupport}</div></div>`)
     : `<button type="button" id="${btnId}" style="${overlayBtnStyle}">${btnText}</button>`;
   ov.innerHTML=`<h1>${title}</h1><div class="subtitle">${sub}</div>${scoreLine}${leaderboardBlock}${winButtons}`;
   if (btnId === 'winBtn') {

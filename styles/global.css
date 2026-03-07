@@ -84,6 +84,9 @@ canvas {
   white-space: nowrap;
   font-size: clamp(32px, 6vw, 64px);
 }
+@media (max-width: 400px) {
+  .menu-frame h1 { white-space: normal; }
+}
 .menu-frame .subtitle,
 .menu-frame .controls,
 .menu-frame #startBtn { margin-left: 0; margin-right: 0; max-width: 100%; overflow-wrap: break-word; }
@@ -107,14 +110,14 @@ canvas {
 }
 .win-youtube-link:hover { background: rgba(220, 20, 20, 1); color: #fff; transform: scale(1.05); }
 #overlay h1 {
-  font-size: clamp(42px, 10vw, 96px); color: #ff69b4;
+  font-size: clamp(42px, 10vw, 90px); color: #ff69b4;
   text-shadow: 0 0 20px #ff69b4, 0 0 40px #ff1493;
   margin-top: -24px; margin-bottom: 8px; letter-spacing: 4px;
   text-align: center; line-height: 1.15;
-  max-width: min(95vw, 900px); word-break: break-word;
+  max-width: min(95vw, 800); word-break: break-word;
 }
 #overlay.death-screen h1 { font-size: clamp(36px, 8vw, 72px); }
-#overlay .subtitle { color: #c084fc; font-size: 26px; font-weight: bold; letter-spacing: 4px; margin-bottom: 40px; text-align: center; }
+#overlay .subtitle { color: #c6aae2; font-size: 26px; font-weight: bold; letter-spacing: 4px; margin-bottom: 40px; text-align: center; }
 #overlay.death-screen .subtitle { font-size: 20px; }
 #overlay .controls {
   color: #ccc;
@@ -155,6 +158,9 @@ canvas {
 .win-save-row .win-save-buttons-row {
   display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;
 }
+.win-end-buttons {
+  display: flex; align-items: stretch; gap: 12px; flex-wrap: nowrap; flex-shrink: 0;
+}
 .win-save-row input#saveScoreName {
   padding: 12px 18px; font-size: 16px; font-family: 'Courier New', monospace;
   background: rgba(26,0,40,0.95); border: 2px solid #ff69b4; color: #fff;
@@ -169,6 +175,13 @@ canvas {
 .save-score-feedback.error { color: #fca5a5; }
 #overlay .overlay-btn:hover { transform: scale(1.05); box-shadow: 0 0 28px rgba(255,20,147,0.7); }
 #overlay .overlay-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+#overlay .overlay-btn,
+#overlay .overlay-btn-link { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+#overlay .overlay-btn-link {
+  text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
+  box-sizing: border-box; flex-shrink: 0; white-space: nowrap;
+  padding: 14px 48px; font-size: 18px; line-height: 1.2;
+}
 #pauseBtn {
   position: fixed;
   left: max(16px, env(safe-area-inset-left));
@@ -213,12 +226,43 @@ canvas {
   #wantedStars { font-size: 14px; }
   .hud-label { font-size: 10px; }
   #overlay .controls { font-size: 12px; padding: 12px 20px; }
+  /* Win/death overlay: smaller buttons and text so they fit */
+  #overlay .overlay-score-line { font-size: 16px; margin-bottom: 14px; }
+  #overlay .subtitle { font-size: clamp(16px, 4.5vw, 22px); letter-spacing: 2px; margin-bottom: 24px; }
+  #overlay .overlay-btn,
+  #overlay .overlay-btn-link {
+    padding: 12px 24px; font-size: 14px; letter-spacing: 2px;
+    min-height: 44px;
+  }
+  #overlay .overlay-btn-link { padding: 12px 24px; font-size: 14px; }
+  .win-save-row .win-save-buttons-row { gap: 10px; }
+  .win-save-row input#saveScoreName { padding: 10px 14px; font-size: 16px; width: 140px; }
+  .leaderboard-title { font-size: 13px; }
+  .leaderboard-list { font-size: 13px; }
+  .leaderboard-list li { max-width: 260px; }
+  /* Minimap: scale down so it doesn’t dominate on small screens */
+  #minimap { transform: scale(0.8); transform-origin: bottom right; }
+}
+/* Very narrow: stack Play again + Support my work vertically so both stay tappable */
+@media (max-width: 360px) {
+  .win-end-buttons { flex-direction: column; width: 100%; max-width: 280px; }
+  #overlay .overlay-btn,
+  #overlay .overlay-btn-link { width: 100%; }
+  #overlay h1 { font-size: clamp(28px, 10vw, 48px); letter-spacing: 2px; }
+  #overlay .subtitle { font-size: 14px; margin-bottom: 18px; }
+  .menu-frame h1 { font-size: clamp(26px, 8vw, 48px); }
 }
 @media (max-height: 500px) {
   .menu-frame { padding: 24px 20px 28px; }
   #overlay h1 { margin-top: -12px; font-size: clamp(32px, 8vw, 64px); }
   #overlay .subtitle { margin-bottom: 20px; font-size: 18px; }
   #overlay .controls { margin-bottom: 16px; }
+  /* Boom button: sit closer to bottom so it doesn’t overlap HUD on short screens */
+  #boomBtn { margin-bottom: 60px; }
+}
+@media (max-height: 400px) {
+  #boomBtn { margin-bottom: 48px; }
+  #minimap { transform: scale(0.7); transform-origin: bottom right; }
 }
 
 /* Win screen floaters canvas (created by JS) */
