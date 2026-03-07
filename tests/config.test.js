@@ -54,7 +54,7 @@ describe('CONFIG', () => {
     });
 
     it('cutscene has required keys', () => {
-      const required = ['finally', 'trueLove', 'winSubtitle', 'playAgain', 'saveScore', 'namePlaceholder', 'saveSuccess', 'saveFailed', 'leaderboardTitle', 'saveUnavailable'];
+      const required = ['finally', 'trueLove', 'winSubtitle', 'playAgain', 'supportWork', 'supportWorkUrl', 'saveScore', 'namePlaceholder', 'saveSuccess', 'saveFailed', 'leaderboardTitle', 'saveUnavailable'];
       required.forEach((k) => expect(CONFIG.cutscene).toHaveProperty(k));
     });
 
