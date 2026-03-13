@@ -137,6 +137,8 @@ function initTextFromConfig() {
   if (boomBtn && ('ontouchstart' in window || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0))) {
     boomBtn.classList.add('visible');
   }
+  const timerEl = document.getElementById('timerDisplay');
+  if (timerEl) timerEl.textContent = '04:44';
 }
 initTextFromConfig();
 
@@ -146,6 +148,9 @@ let paused = false;
 let score = 0;
 let zone = 0;
 let frameCount = 0;
+const ZONE_TIME_LIMIT_SECONDS = 4 * 60 + 44;
+const ZONE_TIME_LIMIT_FRAMES = 60 * ZONE_TIME_LIMIT_SECONDS;
+let zoneTimerFrames = 0;
 let showMessage = '';
 let messageTimer = 0;
 let loveMeter = 0;
@@ -166,6 +171,13 @@ function isTypingTarget() {
 document.addEventListener('keydown', e => {
   if (isTypingTarget()) return;
   if (state === 'menu' && (e.code === 'Enter' || e.code === 'NumpadEnter')) {
+    startGame();
+    setPauseButtonVisible(true);
+    pauseBtn.textContent = CONFIG.buttons.pause;
+    e.preventDefault();
+    return;
+  }
+  if ((state === 'deadScreen') && (e.code === 'Enter' || e.code === 'NumpadEnter')) {
     startGame();
     setPauseButtonVisible(true);
     pauseBtn.textContent = CONFIG.buttons.pause;
@@ -1172,6 +1184,14 @@ function updateHUD() {
   const alive=monsters.filter(m=>!m.dead).length;
   const pct=1-(alive/monsters.length);
   document.getElementById('wantedStars').textContent=CONFIG.hud.wantedStar.repeat(Math.min(Math.floor(pct*5)+1,5));
+  const timerEl = document.getElementById('timerDisplay');
+  if (timerEl) {
+    const remainingFrames = Math.max(0, ZONE_TIME_LIMIT_FRAMES - zoneTimerFrames);
+    const totalSeconds = Math.ceil(remainingFrames / 60);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    timerEl.textContent = `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+  }
 }
 
 // ─── Render ──────────────────────────────────────────────────────────────────
@@ -1363,7 +1383,7 @@ function initZone(zoneIdx) {
   generateMap();
   player=createPlayer(); projectiles=[]; particles=[]; shockwaves=[];
   floatingTexts.length=0; camera={x:0,y:0}; zoneTransitionTimer=0;
-  loveMeter=0; loveSoundPlayed=false;
+  loveMeter=0; loveSoundPlayed=false; zoneTimerFrames=0;
   spawnMonsters(zoneIdx); spawnPrince(); spawnHealthHearts();
 }
 
@@ -1385,6 +1405,12 @@ function gameLoop() {
 
   if (state==='playing') {
     if (!paused) {
+      zoneTimerFrames++;
+      if (zoneTimerFrames >= ZONE_TIME_LIMIT_FRAMES && !player.dead) {
+        player.hp = 0;
+        player.dead = true;
+        state = 'dead';
+      }
       updatePlayer(player);
       for (const m of monsters) updateMonster(m);
       updateProjectiles(); updateParticles(); updateFloatingTexts(); updateHealthHearts();
