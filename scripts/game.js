@@ -177,6 +177,13 @@ document.addEventListener('keydown', e => {
     e.preventDefault();
     return;
   }
+  if ((state === 'deadScreen') && (e.code === 'Enter' || e.code === 'NumpadEnter')) {
+    startGame();
+    setPauseButtonVisible(true);
+    pauseBtn.textContent = CONFIG.buttons.pause;
+    e.preventDefault();
+    return;
+  }
   if (e.code === 'Escape' && state === 'playing') {
     paused = !paused;
     const btn = document.getElementById('pauseBtn');
