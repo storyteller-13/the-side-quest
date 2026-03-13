@@ -97,6 +97,18 @@ const CONFIG = {
     { name: 'ogre',     color: '#5c1a1a', eyeColor: '#cc2222', hp: 100, speed: 0.7, damage: 20, size: 22, loot: 150 },
     { name: 'bat',      color: '#1e293b', eyeColor: '#ff3333', hp: 20,  speed: 2.0, damage: 6,  size: 10, loot: 30  },
     { name: 'skeleton', color: '#5c5044', eyeColor: '#8b0000', hp: 40,  speed: 1.3, damage: 10, size: 15, loot: 60  }
+  ],
+
+  // Collectible items (emoji, displayName, points, rarityWeight)
+  collectibles: [
+    { emoji: '🍄', name: 'mushroom',     points: 50,  rarityWeight: 6 },
+    { emoji: '🍓', name: 'strawberry',   points: 80,  rarityWeight: 5 },
+    { emoji: '🌷', name: 'flower',       points: 120, rarityWeight: 4 },
+    { emoji: '🍒', name: 'cherries',     points: 160, rarityWeight: 3 },
+    { emoji: '🍕', name: 'pizza slice',  points: 220, rarityWeight: 2 },
+    { emoji: '🧁', name: 'cupcake',      points: 260, rarityWeight: 2 },
+    { emoji: '💎', name: 'diamond',      points: 340, rarityWeight: 1 },
+    { emoji: '🎁', name: 'mystery gift', points: 420, rarityWeight: 1 }
   ]
 };
 if (typeof window !== 'undefined') window.CONFIG = CONFIG;

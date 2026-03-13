@@ -242,6 +242,7 @@ let projectiles = [];
 let particles = [];
 let shockwaves = [];
 let healthHearts = [];
+let collectibles = [];
 let prince = null;
 let player = null;
 let camera = { x: 0, y: 0 };
@@ -454,6 +455,7 @@ function createPlayer() {
     facing: 0, attackTimer: 0, attackCooldown: 20,
     heartCooldown: 0, chargeTime: 0, wasChargingHeart: false,
     ammoRegenTimer: 0, invincible: 0, dead: false,
+    powerTintTimer: 0,
   };
 }
 
@@ -539,6 +541,56 @@ function spawnHealthHearts() {
     const idx = Math.floor(Math.random() * pathCells.length);
     const [r, c] = pathCells.splice(idx, 1)[0];
     healthHearts.push({ x: c * TILE + TILE / 2, y: r * TILE + TILE / 2 });
+  }
+}
+
+function spawnCollectibles(zoneIdx) {
+  collectibles = [];
+  const walkable = (r, c) => r >= 0 && r < ROWS && c >= 0 && c < COLS && tilemap[r][c] !== T.WALL;
+  const playerRow = 9, playerCol = 3;
+  const reached = Array(ROWS).fill(0).map(() => Array(COLS).fill(false));
+  const q = [[playerRow, playerCol]];
+  reached[playerRow][playerCol] = true;
+  while (q.length) {
+    const [r, c] = q.shift();
+    for (const [dr, dc] of DIRS) {
+      const rr = r + dr, cc = c + dc;
+      if (walkable(rr, cc) && !reached[rr][cc]) { reached[rr][cc] = true; q.push([rr, cc]); }
+    }
+  }
+  const pathCells = [];
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    if (!reached[r][c]) continue;
+    const tile = tilemap[r][c];
+    if (tile !== T.ROAD && tile !== T.CASTLE) continue;
+    const distFromSpawn = Math.abs(r - playerRow) + Math.abs(c - playerCol);
+    // Allow some near spawn so you always see a few in early streets
+    if (distFromSpawn < 4) continue;
+    pathCells.push([r, c]);
+  }
+  // More generous spawn: lots of shiny things to grab
+  const base = 28 + zoneIdx * 6;
+  const maxCount = Math.min(base + Math.floor(Math.random() * 12), pathCells.length);
+  const defs = CONFIG.collectibles || [];
+  if (!defs.length || !maxCount) return;
+  const totalWeight = defs.reduce((sum, d) => sum + (d.rarityWeight || 1), 0);
+  function pickDef() {
+    let roll = Math.random() * totalWeight;
+    for (const d of defs) {
+      roll -= (d.rarityWeight || 1);
+      if (roll <= 0) return d;
+    }
+    return defs[defs.length - 1];
+  }
+  for (let i = 0; i < maxCount && pathCells.length > 0; i++) {
+    const idx = Math.floor(Math.random() * pathCells.length);
+    const [r, c] = pathCells.splice(idx, 1)[0];
+    collectibles.push({
+      x: c * TILE + TILE / 2,
+      y: r * TILE + TILE / 2,
+      def: pickDef(),
+      bobOffset: Math.random() * Math.PI * 2
+    });
   }
 }
 
@@ -636,16 +688,29 @@ function drawWallBlocks(sc, sr, ec, er) {
 function drawPlayer(p) {
   const [sx,sy] = worldToScreen(p.x, p.y);
   ctx.save(); ctx.translate(sx,sy);
+  const greenMode = p.powerTintTimer > 0;
+  if (greenMode) {
+    const wobble = Math.sin(frameCount * 0.35) * 0.18;
+    ctx.rotate(wobble);
+    const scale = 1 + Math.sin(frameCount * 0.7) * 0.06;
+    ctx.scale(scale, 1 - (scale - 1));
+  }
   const glow = ctx.createRadialGradient(0,0,0,0,0,38);
-  glow.addColorStop(0,'rgba(255,105,180,0.45)');
-  glow.addColorStop(0.4,'rgba(255,20,147,0.2)');
-  glow.addColorStop(1,'rgba(255,105,180,0)');
+  if (greenMode) {
+    glow.addColorStop(0,'rgba(110,231,183,0.55)');
+    glow.addColorStop(0.4,'rgba(16,185,129,0.26)');
+    glow.addColorStop(1,'rgba(16,185,129,0)');
+  } else {
+    glow.addColorStop(0,'rgba(255,105,180,0.45)');
+    glow.addColorStop(0.4,'rgba(255,20,147,0.2)');
+    glow.addColorStop(1,'rgba(255,105,180,0)');
+  }
   ctx.fillStyle=glow; ctx.beginPath(); ctx.arc(0,0,38,0,Math.PI*2); ctx.fill();
   ctx.rotate(p.facing);
   if (p.invincible>0 && Math.floor(p.invincible/4)%2===0) ctx.globalAlpha=0.4;
   ctx.fillStyle='#0d0d0d';
   ctx.beginPath(); ctx.moveTo(-9,4); ctx.lineTo(9,4); ctx.lineTo(12,20); ctx.lineTo(-12,20); ctx.closePath(); ctx.fill();
-  ctx.fillStyle='#4a0080';
+  ctx.fillStyle=greenMode ? '#047857' : '#4a0080';
   ctx.beginPath(); ctx.moveTo(-12,17); ctx.lineTo(12,17); ctx.lineTo(13,20); ctx.lineTo(-13,20); ctx.closePath(); ctx.fill();
   ctx.fillStyle='#1a001a';
   ctx.beginPath(); ctx.moveTo(-2,4); ctx.lineTo(2,4); ctx.lineTo(3,18); ctx.lineTo(-3,18); ctx.closePath(); ctx.fill();
@@ -653,7 +718,7 @@ function drawPlayer(p) {
   ctx.strokeStyle='#4a0080'; ctx.lineWidth=1;
   for(let i=-3;i<=3;i+=2){ctx.beginPath();ctx.moveTo(-4,i);ctx.lineTo(4,i);ctx.stroke();}
   ctx.fillStyle='#0d0d0d'; ctx.fillRect(-6,-14,12,3);
-  ctx.fillStyle='#9900ff'; ctx.beginPath(); ctx.arc(0,-13,2,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=greenMode ? '#22c55e' : '#9900ff'; ctx.beginPath(); ctx.arc(0,-13,2,0,Math.PI*2); ctx.fill();
   ctx.fillStyle='#e8d5d5'; ctx.beginPath(); ctx.ellipse(0,-12,4,3,0,0,Math.PI*2); ctx.fill();
   ctx.fillStyle='#e8d5d5'; ctx.beginPath(); ctx.arc(0,-4,7,0,Math.PI*2); ctx.fill();
   ctx.fillStyle='#0d0d0d';
@@ -669,15 +734,15 @@ function drawPlayer(p) {
   ctx.fillStyle='#4a0033';
   ctx.beginPath(); ctx.moveTo(-3,-1); ctx.quadraticCurveTo(0,1,3,-1); ctx.quadraticCurveTo(0,-2,-3,-1); ctx.closePath(); ctx.fill();
   if (p.attackTimer>p.attackCooldown-8) {
-    ctx.strokeStyle='#9900ff'; ctx.lineWidth=3; ctx.shadowColor='#9900ff'; ctx.shadowBlur=12;
+    ctx.strokeStyle=greenMode ? '#22c55e' : '#9900ff'; ctx.lineWidth=3; ctx.shadowColor=greenMode ? '#22c55e' : '#9900ff'; ctx.shadowBlur=12;
     ctx.beginPath(); ctx.moveTo(8,-2); ctx.lineTo(28,-10); ctx.stroke();
-    ctx.fillStyle='#4a0080'; ctx.beginPath(); ctx.arc(28,-10,5,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#cc00ff'; ctx.beginPath(); ctx.arc(28,-10,3,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=greenMode ? '#047857' : '#4a0080'; ctx.beginPath(); ctx.arc(28,-10,5,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=greenMode ? '#bbf7d0' : '#cc00ff'; ctx.beginPath(); ctx.arc(28,-10,3,0,Math.PI*2); ctx.fill();
     ctx.shadowBlur=0;
   } else {
-    ctx.strokeStyle='#333'; ctx.lineWidth=2;
+    ctx.strokeStyle=greenMode ? '#16a34a' : '#333'; ctx.lineWidth=2;
     ctx.beginPath(); ctx.moveTo(8,0); ctx.lineTo(20,-6); ctx.stroke();
-    ctx.fillStyle='#4a0080'; ctx.beginPath(); ctx.arc(20,-6,3,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=greenMode ? '#16a34a' : '#4a0080'; ctx.beginPath(); ctx.arc(20,-6,3,0,Math.PI*2); ctx.fill();
   }
   ctx.restore();
   if (p.chargeTime>0) {
@@ -690,7 +755,14 @@ function drawPlayer(p) {
     ctx.restore();
   }
   const grd=ctx.createRadialGradient(sx,sy,0,sx,sy,36);
-  grd.addColorStop(0,'rgba(255,105,180,0.25)'); grd.addColorStop(0.5,'rgba(200,50,150,0.08)'); grd.addColorStop(1,'rgba(255,105,180,0)');
+  if (greenMode) {
+    const pulse = (Math.sin(frameCount * 0.3) + 1) / 2;
+    grd.addColorStop(0,`rgba(74,222,128,${0.15 + pulse*0.25})`);
+    grd.addColorStop(0.5,'rgba(34,197,94,0.12)');
+    grd.addColorStop(1,'rgba(22,163,74,0)');
+  } else {
+    grd.addColorStop(0,'rgba(255,105,180,0.25)'); grd.addColorStop(0.5,'rgba(200,50,150,0.08)'); grd.addColorStop(1,'rgba(255,105,180,0)');
+  }
   ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(sx,sy,36,0,Math.PI*2); ctx.fill();
 }
 
@@ -764,6 +836,21 @@ function drawHealthHeart(sx, sy) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('🖤', 0, 0);
+  ctx.restore();
+}
+
+function drawCollectibleItem(item) {
+  const [sx, sy] = worldToScreen(item.x, item.y);
+  if (sx < -32 || sx > W + 32 || sy < -32 || sy > H + 32) return;
+  const bob = Math.sin(frameCount * 0.08 + item.bobOffset) * 3;
+  ctx.save();
+  ctx.translate(sx, sy + bob);
+  ctx.font = '34px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = '#ffd700';
+  ctx.shadowBlur = 20;
+  ctx.fillText(item.def.emoji, 0, 0);
   ctx.restore();
 }
 
@@ -889,6 +976,13 @@ function updatePlayer(p) {
   if (p.attackTimer>0) p.attackTimer--;
   if (p.invincible>0) p.invincible--;
   if (p.heartCooldown>0) p.heartCooldown--;
+  if (p.powerTintTimer > 0 && frameCount % 4 === 0) {
+    const wiggleAngle = (Math.random() - 0.5) * 0.3;
+    const len = 16;
+    p.x += Math.cos(wiggleAngle + frameCount * 0.08) * 0.6;
+    p.y += Math.sin(wiggleAngle + frameCount * 0.1) * 0.4;
+    spawnParticles(p.x, p.y, '#22c55e', 1, 1.5);
+  }
   if (p.ammo<10) {
     p.ammoRegenTimer++;
     if (p.ammoRegenTimer>=300) { p.ammo++; p.ammoRegenTimer=0; showFloatingText(p.x,p.y-20,CONFIG.messages.heartPickup,'#ff69b4'); }
@@ -914,6 +1008,7 @@ function updatePlayer(p) {
     p.chargeTime=0; p.wasChargingHeart=false; p.heartCooldown=15;
     mouse.right=false; keys['KeyE']=false;
   } else if (!heartHeld) { p.wasChargingHeart=false; p.chargeTime=0; }
+  if (p.powerTintTimer > 0) p.powerTintTimer--;
 }
 
 function doMeleeAttack(p) {
@@ -1072,6 +1167,30 @@ function updateHealthHearts() {
   }
 }
 
+function updateCollectibles() {
+  if (player.dead) return;
+  const pickupRadius = 22;
+  for (let i = collectibles.length - 1; i >= 0; i--) {
+    const it = collectibles[i];
+    const dx = player.x - it.x, dy = player.y - it.y;
+    if (dx * dx + dy * dy < pickupRadius * pickupRadius) {
+      const pts = it.def.points || 0;
+      score += pts;
+      const label = `+${pts}`;
+      showFloatingText(it.x, it.y - 18, label, '#ffd700');
+      spawnParticles(it.x, it.y, '#ffd700', 14, 4);
+      spawnParticles(it.x, it.y, '#fffbeb', 10, 3);
+      playSound('heart');
+      // Mushroom power-up: silly green mode for ~10 seconds
+      if (it.def.emoji === '🍄') {
+        player.powerTintTimer = 60 * 10;
+        showFloatingText(player.x, player.y - 30, 'MUSHROOM POWER', '#22c55e');
+      }
+      collectibles.splice(i, 1);
+    }
+  }
+}
+
 function updateCamera() {
   let tx, ty;
   if (prince && prince.fleeing && prince.speechTimer > 0) {
@@ -1152,6 +1271,8 @@ function drawMinimap() {
   for (const m of monsters) if (!m.dead) { mctx.beginPath(); mctx.arc(m.x*sx,m.y*sy,2,0,Math.PI*2); mctx.fill(); }
   mctx.fillStyle='#000000';
   for (const h of healthHearts) { mctx.beginPath(); mctx.arc(h.x*sx,h.y*sy,1.5,0,Math.PI*2); mctx.fill(); }
+  mctx.fillStyle='#ffd700';
+  for (const it of collectibles) { mctx.beginPath(); mctx.arc(it.x*sx,it.y*sy,1.5,0,Math.PI*2); mctx.fill(); }
   if (prince) {
     const pulse = 0.75 + 0.25 * (1 + Math.sin(frameCount * 0.12));
     const px = prince.x * sx, py = prince.y * sy;
@@ -1206,6 +1327,9 @@ function render() {
     const [hx, hy] = worldToScreen(h.x, h.y);
     if (hx < -20 || hx > W + 20 || hy < -20 || hy > H + 20) continue;
     drawHealthHeart(hx, hy);
+  }
+  for (const it of collectibles) {
+    drawCollectibleItem(it);
   }
   for (const sw of shockwaves) {
     if (sw.delay>0) continue;
@@ -1384,7 +1508,7 @@ function initZone(zoneIdx) {
   player=createPlayer(); projectiles=[]; particles=[]; shockwaves=[];
   floatingTexts.length=0; camera={x:0,y:0}; zoneTransitionTimer=0;
   loveMeter=0; loveSoundPlayed=false; zoneTimerFrames=0;
-  spawnMonsters(zoneIdx); spawnPrince(); spawnHealthHearts();
+  spawnMonsters(zoneIdx); spawnPrince(); spawnHealthHearts(); spawnCollectibles(zoneIdx);
 }
 
 function startGame() {
@@ -1413,7 +1537,7 @@ function gameLoop() {
       }
       updatePlayer(player);
       for (const m of monsters) updateMonster(m);
-      updateProjectiles(); updateParticles(); updateFloatingTexts(); updateHealthHearts();
+      updateProjectiles(); updateParticles(); updateFloatingTexts(); updateHealthHearts(); updateCollectibles();
       updateCamera(); updatePrince(); checkWin();
     if (screenShake>0) screenShake=Math.max(0,screenShake-1.2);
     for (let i=shockwaves.length-1;i>=0;i--) {
