@@ -30,6 +30,13 @@ canvas {
   border: 1px solid #ff69b4; border-radius: 2px; overflow: hidden;
 }
 #healthFill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff1493, #ff69b4); transition: width 0.15s; }
+#timerDisplay {
+  color: #ff69b4;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
 #loveBar {
   width: 180px; height: 14px; background: #1a0020;
   border: 1px solid #c084fc; border-radius: 2px; overflow: hidden; position: relative;
@@ -222,6 +229,7 @@ canvas {
 @media (max-width: 480px) {
   #healthBar { width: 140px; height: 14px; }
   #loveBar { width: 140px; height: 12px; }
+  #timerDisplay { font-size: 14px; }
   #levelDisplay { font-size: 18px; padding: 6px 14px; top: max(8px, env(safe-area-inset-top)); }
   #scoreDisplay { font-size: 20px; }
   #wantedStars { font-size: 14px; }
