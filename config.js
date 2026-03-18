@@ -102,13 +102,11 @@ const CONFIG = {
   // Collectible items (emoji, displayName, points, rarityWeight)
   collectibles: [
     { emoji: '🍄', name: 'mushroom',     points: 50,  rarityWeight: 6 },
-    { emoji: '🍓', name: 'strawberry',   points: 80,  rarityWeight: 5 },
-    { emoji: '🌷', name: 'flower',       points: 120, rarityWeight: 4 },
-    { emoji: '🍒', name: 'cherries',     points: 160, rarityWeight: 3 },
     { emoji: '🍕', name: 'pizza slice',  points: 220, rarityWeight: 2 },
     { emoji: '🧁', name: 'cupcake',      points: 260, rarityWeight: 2 },
     { emoji: '💎', name: 'diamond',      points: 340, rarityWeight: 1 },
-    { emoji: '🎁', name: 'mystery gift', points: 420, rarityWeight: 1 }
+    // Fewer emoji types = fewer visual item variants in-world.
+    // (The mushroom emoji is special-cased in `scripts/game.js` for power-ups.)
   ]
 };
 if (typeof window !== 'undefined') window.CONFIG = CONFIG;
